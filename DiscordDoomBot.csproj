@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00687"/>
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00687"/>
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00687"/>
+    <PackageReference Include="MySqlConnector" Version="0.64.1"/>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3"/>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0-preview.4.20251.6"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Servers\"/>
+  </ItemGroup>
+</Project>

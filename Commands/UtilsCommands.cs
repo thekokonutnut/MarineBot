@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
+using CodingSeb.ExpressionEvaluator;
 
 namespace MarineBot.Commands
 {
@@ -84,8 +85,8 @@ namespace MarineBot.Commands
             try
             {
                 string input = ctx.Message.Content.Substring(8);
-                Evaluator mEvaluator = new Evaluator();
-                await MessageHelper.SendSuccessEmbed(ctx, $"`{input}:` {mEvaluator.Eval(input)}");
+                ExpressionEvaluator mEvaluator = new ExpressionEvaluator();
+                await MessageHelper.SendSuccessEmbed(ctx, $"`{input}:` {mEvaluator.Evaluate(input)}");
             }
             catch (Exception e)
             {

@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using MarineBot.Entities;
+using MarineBot.Controller;
 
 namespace MarineBot.Commands
 {

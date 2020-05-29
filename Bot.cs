@@ -63,15 +63,14 @@ namespace MarineBot
 
             _cmdinput = new CommandsInputController();
 
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<InteractivityExtension>(this._interactivity);
-            serviceCollection.AddSingleton<CancellationTokenSource>(this._cts);
-            serviceCollection.AddSingleton<DatabaseController>(this._dbcontroller);
-            serviceCollection.AddSingleton<CommandsInputController>(this._cmdinput);
-            serviceCollection.AddSingleton<Config>(this._config);
-            serviceCollection.AddSingleton<DiscordClient>(this._client);
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<InteractivityExtension>(this._interactivity)
+                .AddSingleton<CancellationTokenSource>(this._cts)
+                .AddSingleton<DatabaseController>(this._dbcontroller)
+                .AddSingleton<CommandsInputController>(this._cmdinput)
+                .AddSingleton<Config>(this._config)
+                .AddSingleton<DiscordClient>(this._client)
+                .BuildServiceProvider();
 
             _cnext = _client.UseCommandsNext(new CommandsNextConfiguration()
             {
@@ -88,7 +87,6 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.ManagementCommands>();
             _cnext.RegisterCommands<Commands.ReminderCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();
-            //_cnext.RegisterCommands<Commands.ServerCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
 

@@ -87,6 +87,7 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.ManagementCommands>();
             _cnext.RegisterCommands<Commands.ReminderCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();
+            _cnext.RegisterCommands<Commands.ImageCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
 

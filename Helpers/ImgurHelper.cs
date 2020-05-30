@@ -4,6 +4,7 @@ using System;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace MarineBot.Helpers
 {
@@ -34,12 +35,13 @@ namespace MarineBot.Helpers
 
             var response = await client.SendAsync(request);
             var respstring = await response.Content.ReadAsStringAsync();
-            
-            JObject imgurSearch = JObject.Parse(respstring);
 
-            int status = (int)imgurSearch["status"];
+            int status = (int)response.StatusCode;
+
             if (status != 200)
-                return $"La API devolvió el código de respuesta: {status}";
+                return $"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}";
+
+            JObject imgurSearch = JObject.Parse(respstring);
 
             int totalItems = (int)imgurSearch["data"]["total_items"];
             if (totalItems <= 0)

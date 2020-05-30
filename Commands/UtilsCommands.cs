@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using CodingSeb.ExpressionEvaluator;
+using MarineBot.Helpers;
 
 namespace MarineBot.Commands
 {
@@ -93,25 +94,6 @@ namespace MarineBot.Commands
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
                 throw;
             }
-        }
-
-        [Command("imgur")]
-        [Description("Obtiene una imágen al azar dado una etiqueta.")]
-        public async Task ImgurCommand(CommandContext ctx, [Description("Etiqueta a buscar")] string tag)
-        {
-            try
-            {
-                var ranImg = await _imgur.GetRandomImage(tag);
-                if (ranImg.StartsWith("http"))
-                    await ctx.RespondAsync(ranImg);
-                else
-                    await MessageHelper.SendWarningEmbed(ctx, ranImg);
-            }
-            catch (Exception e)
-            {
-                await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
-            } 
         }
 
         [Command("purge")]

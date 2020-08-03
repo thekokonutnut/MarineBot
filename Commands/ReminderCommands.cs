@@ -159,7 +159,8 @@ namespace MarineBot.Commands
         [Description("Elimina el recordatorio especificado.")]
         public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio.")] string name)
         {
-            await MessageHelper.SendWarningEmbed(ctx, "Method not implemented.");
+            await _database.RemoveReminder(name, ctx);
+            await MessageHelper.SendSuccessEmbed(ctx, $"Recordatorio eliminado con éxito.\nID: **{name}**");
         }
 
         [Command("list")]

@@ -7,12 +7,15 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using MarineBot.Controller;
+using MarineBot.Interfaces;
 
 namespace MarineBot.Database
 {
-    internal class ReminderDatabase
+    internal class ReminderDatabase : IDatabase
     {
         DatabaseController _dbcontroller;
+
+        
 
         public ReminderDatabase(DatabaseController databaseController)
         {
@@ -39,6 +42,35 @@ namespace MarineBot.Database
                 }
             }
         }
+
+        public async Task RemoveReminder(string name, CommandContext ctx = null)
+        {
+            using (var conn = new MySqlConnection(_dbcontroller.ConnectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var cmd = new MySqlCommand())
+                {
+                    cmd.Connection = conn;
+                    cmd.CommandText = "DELETE FROM `reminders` WHERE `Name` = @name";
+                    cmd.Parameters.AddWithValue("name", name);
+
+                    try
+                    {
+                        await cmd.ExecuteNonQueryAsync();
+                        
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                        if (ctx != null)
+                            await MessageHelper.SendErrorEmbed(ctx, e.Message);
+                        throw;
+                    }
+                }
+            }
+        }
+
         public async Task AddReminder(Reminder reminder, CommandContext ctx = null)
         {
             using (var conn = new MySqlConnection(_dbcontroller.ConnectionString))

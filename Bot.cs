@@ -58,18 +58,23 @@ namespace MarineBot
             });
 
             _cts = new CancellationTokenSource();
-
+            _cmdinput = new CommandsInputController();
             _dbcontroller = new DatabaseController(_config._databaseConfig);
 
-            _cmdinput = new CommandsInputController();
+            if (!_dbcontroller.TestConnection())
+            {
+                Console.WriteLine("Press any key to exit..");
+                Console.ReadKey();
+                Environment.Exit(0);
+            }
 
             var serviceProvider = new ServiceCollection()
-                .AddSingleton<InteractivityExtension>(this._interactivity)
-                .AddSingleton<CancellationTokenSource>(this._cts)
-                .AddSingleton<DatabaseController>(this._dbcontroller)
-                .AddSingleton<CommandsInputController>(this._cmdinput)
-                .AddSingleton<Config>(this._config)
-                .AddSingleton<DiscordClient>(this._client)
+                .AddSingleton<InteractivityExtension>   (this._interactivity)
+                .AddSingleton<CancellationTokenSource>  (this._cts)
+                .AddSingleton<DatabaseController>       (this._dbcontroller)
+                .AddSingleton<CommandsInputController>  (this._cmdinput)
+                .AddSingleton<Config>                   (this._config)
+                .AddSingleton<DiscordClient>            (this._client)
                 .BuildServiceProvider();
 
             _cnext = _client.UseCommandsNext(new CommandsNextConfiguration()
@@ -96,9 +101,13 @@ namespace MarineBot
 
         public async Task RunAsync()
         {
+            await _dbcontroller.LoadEverything();
+
             await _client.ConnectAsync();
             _ = Task.Factory.StartNew(() => _reminderthread.RunAsync());
             await WaitForCancellationAsync();
+
+            await _dbcontroller.SaveEverything();
         }
 
         private async Task WaitForCancellationAsync()
@@ -120,6 +129,7 @@ namespace MarineBot
             this._interactivity = null;
             this._cnext = null;
             this._config = null;
+            this._reminderthread = null;
         }
     }
 }

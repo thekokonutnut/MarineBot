@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
+using MarineBot.Database;
 using MarineBot.Entities;
 using MarineBot.Helpers;
 
@@ -11,13 +12,13 @@ namespace MarineBot.Controller
     public class ReminderThread
     {
         private CancellationTokenSource _cts;
-        private Database.ReminderDatabase _database;
+        private ReminderTable _database;
         private DiscordClient _client;
         public ReminderThread(IServiceProvider serviceProvider)
         {
             var controller = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
-            _database = new Database.ReminderDatabase(controller);
-            _cts = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
+            _database = controller.GetTable<ReminderTable>();
+            _cts    = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
             _client = (DiscordClient)serviceProvider.GetService(typeof(DiscordClient));
         }
 
@@ -44,7 +45,7 @@ namespace MarineBot.Controller
             while (!_cts.IsCancellationRequested)
             {
                 var date = DateTime.UtcNow;
-                var reminders = await _database.GetReminders();
+                var reminders =  _database.GetReminders();
                 foreach (var reminder in reminders)
                 {
                     if (reminder.Hour == date.Hour && reminder.Minute == date.Minute)

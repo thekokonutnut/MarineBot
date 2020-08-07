@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace MarineBot.Helpers
@@ -17,6 +18,7 @@ namespace MarineBot.Helpers
 
         [JsonProperty("databaseconfig")]
         internal DatabaseConfig _databaseConfig = new DatabaseConfig();
+
         [JsonProperty("imgur_clientid")]
         internal string imgurClientID = "";
 

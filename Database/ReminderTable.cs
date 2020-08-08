@@ -4,7 +4,7 @@ using DSharpPlus.CommandsNext;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarineBot.Controller;
+using MarineBot.Threads;
 using MySqlConnector;
 using MarineBot.Interfaces;
 using System.Linq;

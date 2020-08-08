@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using MarineBot.Entities;
-using MarineBot.Controller;
+using MarineBot.Threads;
 using MarineBot.Database;
 
 namespace MarineBot.Commands
@@ -21,7 +21,7 @@ namespace MarineBot.Commands
     [Description("Comandos de recordatorios.")]
     internal class ReminderCommands : BaseCommandModule
     {
-        private Database.ReminderTable _database;
+        private ReminderTable _reminderTable;
         private InteractivityExtension _interactivity;
         private CommandsInputController _cmdinput;
         public ReminderCommands(IServiceProvider serviceProvider)
@@ -30,7 +30,7 @@ namespace MarineBot.Commands
             _cmdinput = (CommandsInputController)serviceProvider.GetService(typeof(CommandsInputController));
             var controller = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
             
-            _database = controller.GetTable<ReminderTable>();
+            _reminderTable = controller.GetTable<ReminderTable>();
         }
 
         [Command("create")]
@@ -42,7 +42,7 @@ namespace MarineBot.Commands
             else
                 return;
 
-            if (_database.ReminderExists(name))
+            if (_reminderTable.ReminderExists(name))
             {
                 await MessageHelper.SendWarningEmbed(ctx, "Ese identificador ya está en uso.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
@@ -144,7 +144,7 @@ namespace MarineBot.Commands
 
             await channelMsg.Result.DeleteAsync();
 
-            _database.AddReminder(new Reminder(name, descMsg.Result.Content, timeMsg.Result.Content, ctx.Guild.Id, channelId));
+            _reminderTable.AddReminder(new Reminder(name, descMsg.Result.Content, timeMsg.Result.Content, ctx.Guild.Id, channelId));
 
             await message.DeleteAsync();
 
@@ -154,20 +154,20 @@ namespace MarineBot.Commands
                 $"\nCanal: **{ctx.Guild.Channels[channelId].Name}**");
             _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
 
-            await _database.SaveChanges();
+            await _reminderTable.SaveChanges();
         }
 
         [Command("delete"), Aliases("remove")]
         [Description("Elimina el recordatorio especificado.")]
         public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio.")] string name)
         {
-            if (!_database.RemoveReminder(name))
+            if (!_reminderTable.RemoveReminder(name))
             {
                 await MessageHelper.SendWarningEmbed(ctx, $"No se encontró recordatorio con esa ID.");
                 return;
             }
             await MessageHelper.SendSuccessEmbed(ctx, $"Recordatorio eliminado con éxito.\nID: **{name}**");
-            await _database.SaveChanges();
+            await _reminderTable.SaveChanges();
         }
 
         [Command("list")]
@@ -182,7 +182,7 @@ namespace MarineBot.Commands
                 .WithColor(0x007FFF)
                 .WithThumbnailUrl(FacesHelper.GetIdleFace());
 
-            var remindersList = _database.GetReminders();
+            var remindersList = _reminderTable.GetReminders();
             var guildList = new List<Reminder>();
 
             foreach (var reminder in remindersList)

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace MarineBot.Controller
+namespace MarineBot.Threads
 {
     internal class DatabaseConfig
     {

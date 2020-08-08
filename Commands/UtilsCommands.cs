@@ -2,13 +2,9 @@ using MarineBot.Helpers;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using CodingSeb.ExpressionEvaluator;
-using MarineBot.Helpers;
 
 namespace MarineBot.Commands
 {
@@ -16,13 +12,11 @@ namespace MarineBot.Commands
     [Description("Comandos de utilidad variada.")]
     public class UtilsCommands : BaseCommandModule
     {
-        private Config _config;
-        private ImgurHelper _imgur;
+        private readonly Config _config;
 
         public UtilsCommands(IServiceProvider serviceProvider)
         {
             _config = (Config)serviceProvider.GetService(typeof(Config));
-            _imgur = new ImgurHelper(_config.imgurClientID);
         }
 
         [Command("roll")]
@@ -70,7 +64,7 @@ namespace MarineBot.Commands
             {
                 string[] options = _config.dudaAnswers;
                 int chosen = NumbersHelper.GetRandom(0, options.Length);
-                await MessageHelper.SendSuccessEmbed(ctx, $"`{ctx.Message.Content.Substring(8)}:` {options[chosen]}");
+                await MessageHelper.SendSuccessEmbed(ctx, $"`{duda}:` {options[chosen]}");
             }
             catch (Exception e)
             {
@@ -85,9 +79,8 @@ namespace MarineBot.Commands
         {
             try
             {
-                string input = ctx.Message.Content.Substring(8);
                 ExpressionEvaluator mEvaluator = new ExpressionEvaluator();
-                await MessageHelper.SendSuccessEmbed(ctx, $"`{input}:` {mEvaluator.Evaluate(input)}");
+                await MessageHelper.SendSuccessEmbed(ctx, $"`{expresion}:` {mEvaluator.Evaluate(expresion)}");
             }
             catch (Exception e)
             {
@@ -107,9 +100,8 @@ namespace MarineBot.Commands
                 var messages = await ctx.Channel.GetMessagesAsync((int)amount + 1);
 
                 await ctx.Channel.DeleteMessagesAsync(messages);
-                const int delay = 2000;
                 var m = MessageHelper.SendSuccessEmbed(ctx, $"Se borraron mensajes con éxito.");
-                await Task.Delay(delay);
+                await Task.Delay(2000);
                 await m.Result.DeleteAsync();
             }
             catch (Exception e)

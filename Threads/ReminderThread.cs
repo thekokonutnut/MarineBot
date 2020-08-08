@@ -7,19 +7,19 @@ using MarineBot.Database;
 using MarineBot.Entities;
 using MarineBot.Helpers;
 
-namespace MarineBot.Controller
+namespace MarineBot.Threads
 {
     public class ReminderThread
     {
         private CancellationTokenSource _cts;
-        private ReminderTable _database;
+        private ReminderTable _reminderTable;
         private DiscordClient _client;
         public ReminderThread(IServiceProvider serviceProvider)
         {
-            var controller = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
-            _database = controller.GetTable<ReminderTable>();
-            _cts    = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
-            _client = (DiscordClient)serviceProvider.GetService(typeof(DiscordClient));
+            var controller  = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
+            _reminderTable  = controller.GetTable<ReminderTable>();
+            _cts            = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
+            _client         = (DiscordClient)serviceProvider.GetService(typeof(DiscordClient));
         }
 
         private async Task TriggerReminder(Reminder reminder)
@@ -45,7 +45,7 @@ namespace MarineBot.Controller
             while (!_cts.IsCancellationRequested)
             {
                 var date = DateTime.UtcNow;
-                var reminders =  _database.GetReminders();
+                var reminders =  _reminderTable.GetReminders();
                 foreach (var reminder in reminders)
                 {
                     if (reminder.Hour == date.Hour && reminder.Minute == date.Minute)

@@ -1,4 +1,4 @@
-﻿using MarineBot.Controller;
+﻿using MarineBot.Threads;
 using MarineBot.Database;
 using MarineBot.Entities;
 using MarineBot.Interfaces;
@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MarineBot.Controller
+namespace MarineBot.Threads
 {
     internal class DatabaseController
     {
@@ -26,6 +26,7 @@ namespace MarineBot.Controller
 
             databaseTables = new List<ITable>();
             databaseTables.Add(new ReminderTable(ConnectionString));
+            databaseTables.Add(new PollTable(ConnectionString));
         }
 
         public T GetTable<T>()
@@ -57,8 +58,8 @@ namespace MarineBot.Controller
             Console.WriteLine("[System] Loading data from database.");
             foreach (var table in databaseTables)
             {
-                await table.LoadTable();
                 await table.CreateTableIfNull();
+                await table.LoadTable();
             }
         }
 

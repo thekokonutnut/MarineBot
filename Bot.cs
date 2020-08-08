@@ -11,20 +11,21 @@ using MarineBot.Helpers;
 using System.IO;
 using DSharpPlus.Interactivity.Enums;
 using Microsoft.Extensions.DependencyInjection;
-using MarineBot.Controller;
+using MarineBot.Threads;
 
 namespace MarineBot
 {
     public class Bot : IDisposable
     {
-        private DiscordClient _client;
-        private InteractivityExtension _interactivity;
-        private CommandsNextExtension _cnext;
-        private Config _config;
+        private DiscordClient           _client;
+        private InteractivityExtension  _interactivity;
+        private CommandsNextExtension   _cnext;
+        private Config                  _config;
         private CancellationTokenSource _cts;
-        private DatabaseController _dbcontroller;
+        private DatabaseController      _dbcontroller;
         private CommandsInputController _cmdinput;
-        private ReminderThread _reminderthread;
+        private ReminderThread          _reminderthread;
+        private PollThread              _pollthread;
 
         public Bot()
         {
@@ -44,22 +45,22 @@ namespace MarineBot
 
             _client = new DiscordClient(new DiscordConfiguration()
             {
-                AutoReconnect = true,
-                LogLevel = LogLevel.Debug,
-                Token = _config.Token,
-                TokenType = TokenType.Bot,
-                UseInternalLogHandler = true
+                AutoReconnect           = true,
+                LogLevel                = LogLevel.Debug,
+                Token                   = _config.Token,
+                TokenType               = TokenType.Bot,
+                UseInternalLogHandler   = true
             });
 
             _interactivity = _client.UseInteractivity(new InteractivityConfiguration()
             {
                 PaginationBehaviour = PaginationBehaviour.Ignore,
-                Timeout = TimeSpan.FromSeconds(30)
+                Timeout             = TimeSpan.FromSeconds(30)
             });
 
-            _cts = new CancellationTokenSource();
-            _cmdinput = new CommandsInputController();
-            _dbcontroller = new DatabaseController(_config._databaseConfig);
+            _cts            = new CancellationTokenSource();
+            _cmdinput       = new CommandsInputController();
+            _dbcontroller   = new DatabaseController(_config._databaseConfig);
 
             if (!_dbcontroller.TestConnection())
             {
@@ -79,22 +80,24 @@ namespace MarineBot
 
             _cnext = _client.UseCommandsNext(new CommandsNextConfiguration()
             {
-                CaseSensitive = false,
-                EnableDefaultHelp = true,
-                EnableDms = false,
-                EnableMentionPrefix = true,
-                StringPrefixes = new string[] {_config.Prefix},
-                IgnoreExtraArguments = true,
-                Services = serviceProvider
+                CaseSensitive           = false,
+                EnableDefaultHelp       = true,
+                EnableDms               = false,
+                EnableMentionPrefix     = true,
+                StringPrefixes          = new string[] {_config.Prefix},
+                IgnoreExtraArguments    = true,
+                Services                = serviceProvider
             });
 
             _cnext.SetHelpFormatter<HelpFormatter>();
             _cnext.RegisterCommands<Commands.ManagementCommands>();
             _cnext.RegisterCommands<Commands.ReminderCommands>();
+            _cnext.RegisterCommands<Commands.PollCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();
             _cnext.RegisterCommands<Commands.ImageCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
+            _pollthread     = new PollThread(serviceProvider);
 
             _client.Ready += OnReadyAsync;
         }
@@ -105,6 +108,7 @@ namespace MarineBot
 
             await _client.ConnectAsync();
             _ = Task.Factory.StartNew(() => _reminderthread.RunAsync());
+            _ = Task.Factory.StartNew(() => _pollthread.RunAsync());
             await WaitForCancellationAsync();
 
             await _dbcontroller.SaveEverything();
@@ -130,6 +134,7 @@ namespace MarineBot
             this._cnext = null;
             this._config = null;
             this._reminderthread = null;
+            this._pollthread = null;
         }
     }
 }

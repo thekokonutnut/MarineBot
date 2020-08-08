@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace MarineBot.Controller
+namespace MarineBot.Threads
 {
     internal class CommandsInputController
     {

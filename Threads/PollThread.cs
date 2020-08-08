@@ -1,6 +1,7 @@
 ﻿using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.EventHandling;
+using MarineBot.Controller;
 using MarineBot.Database;
 using MarineBot.Entities;
 using MarineBot.Helpers;
@@ -96,6 +97,8 @@ namespace MarineBot.Threads
                         var usersReact = await poll.Message.GetReactionsAsync(DiscordEmoji.FromName(_client, _reactions[i]));
                         reactionsCount[i] += usersReact.Count(p => ValidUser(p));
                     }
+
+                    poll.Terminated = true;
 
                     var embed = GenerateEmbed(poll, reactionsCount, true);
                     await poll.Message.ModifyAsync(embed: embed.Build());

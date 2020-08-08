@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MarineBot.Entities;
 using MarineBot.Helpers;
+using MarineBot.Controller;
 
 namespace MarineBot.Commands
 {

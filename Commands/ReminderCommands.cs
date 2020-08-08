@@ -14,6 +14,7 @@ using System.Reflection;
 using MarineBot.Entities;
 using MarineBot.Threads;
 using MarineBot.Database;
+using MarineBot.Controller;
 
 namespace MarineBot.Commands
 {

@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MarineBot.Threads
+namespace MarineBot.Controller
 {
     internal class DatabaseController
     {

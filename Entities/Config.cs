@@ -1,4 +1,5 @@
-﻿using MarineBot.Threads;
+﻿using MarineBot.Entities;
+using MarineBot.Threads;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

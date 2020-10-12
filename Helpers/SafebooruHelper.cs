@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace MarineBot.Helpers
 {
-    public class SafebooruImage
+    internal class SafebooruImage
     {
         public string @Id { get; set; }
         public string @File_url { get; set; }

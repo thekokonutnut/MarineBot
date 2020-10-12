@@ -34,9 +34,16 @@ namespace MarineBot.Commands
             _reminderTable = controller.GetTable<ReminderTable>();
         }
 
-        [Command("create")]
-        [Description("Crea un recordatorio.")]
-        public async Task CreateReminderCommand(CommandContext ctx, [Description("ID del recordatorio.")] string name)
+        [GroupCommand(), Hidden()]
+        public async Task MainCommand(CommandContext ctx)
+        {
+            var cmds = ctx.CommandsNext;
+            var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), ctx.Command.QualifiedName);
+            await cmds.ExecuteCommandAsync(context);
+        }
+
+        [Command("create"), Description("Crea un recordatorio.")]
+        public async Task CreateReminderCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
         {
             if (_cmdinput.IsAvailable(ctx.User.Id))
                 _cmdinput.SetUserAt(ctx.User.Id, MethodBase.GetCurrentMethod());
@@ -158,9 +165,8 @@ namespace MarineBot.Commands
             await _reminderTable.SaveChanges();
         }
 
-        [Command("delete"), Aliases("remove")]
-        [Description("Elimina el recordatorio especificado.")]
-        public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio.")] string name)
+        [Command("delete"), Aliases("remove"), Description("Elimina el recordatorio especificado.")]
+        public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
         {
             if (!_reminderTable.RemoveReminder(name))
             {
@@ -171,8 +177,7 @@ namespace MarineBot.Commands
             await _reminderTable.SaveChanges();
         }
 
-        [Command("list")]
-        [Description("Lista todos los recordatorios activos.")]
+        [Command("list"), Description("Lista todos los recordatorios activos.")]
         public async Task ListRemindersCommand(CommandContext ctx)
         {
             if (!_cmdinput.IsAvailable(ctx.User.Id))

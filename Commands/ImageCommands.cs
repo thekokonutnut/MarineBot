@@ -13,7 +13,7 @@ namespace MarineBot.Commands
 {
     [Group("Images"), Aliases("img")]
     [Description("Comandos de imágenes online.")]
-    public class ImageCommands : BaseCommandModule
+    internal class ImageCommands : BaseCommandModule
     {
         private Config _config;
         private ImgurHelper _imgur;
@@ -22,6 +22,14 @@ namespace MarineBot.Commands
         {
             _config = (Config)serviceProvider.GetService(typeof(Config));
             _imgur = new ImgurHelper(_config.imgurClientID);
+        }
+
+        [GroupCommand(), Hidden()]
+        public async Task MainCommand(CommandContext ctx)
+        {
+            var cmds = ctx.CommandsNext;
+            var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), ctx.Command.QualifiedName);
+            await cmds.ExecuteCommandAsync(context);
         }
 
         [Command("imgur")]

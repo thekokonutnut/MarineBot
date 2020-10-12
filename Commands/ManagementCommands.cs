@@ -11,7 +11,7 @@ using DSharpPlus;
 namespace MarineBot.Commands
 {
     [Group("Management"),Aliases("m")]
-    [Description("Comandos de administración.")]
+    [Description("Comándos de administración.")]
     [RequireUserPermissions(Permissions.Administrator)]
     [Hidden]
     internal class ManagementCommands : BaseCommandModule
@@ -22,9 +22,8 @@ namespace MarineBot.Commands
             _cts = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
         }
 
-        [Command("shutdown")]
-        [Description("Apaga el bot.")]
-        [RequireUserPermissions(Permissions.Administrator)]
+        [Command("shutdown"), Description("Apaga el bot.")]
+        [RequireUserPermissions(Permissions.ManageGuild)]
         public async Task ShutdownCommand(CommandContext ctx)
         {
             await MessageHelper.SendSuccessEmbed(ctx, "Apagando el bot.");

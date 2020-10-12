@@ -24,7 +24,10 @@ namespace MarineBot.Helpers
         internal string imgurClientID = "";
 
         [JsonProperty("duda_answers")]
-        internal string[] dudaAnswers = {"si", "no", "perhaps"};
+        internal string[] dudaAnswers = {"Yes", "No", "Maybe"};
+
+        [JsonProperty("status_messages")]
+        internal string[] statusMessages = { "Gutting demons", "Cleaning hell", "Freeing the Earth" };
 
         public static Config LoadFromFile(string path)
         {

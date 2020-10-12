@@ -8,13 +8,13 @@ using System.Net;
 
 namespace MarineBot.Helpers
 {
-    public class ImgurImage
+    internal class ImgurImage
     {
         public string Title { get; set; }
         public string Link { get; set; }
     }
 
-    public class ImgurHelper
+    internal class ImgurHelper
     {
         private string CLIENT_ID = "";
         private static readonly HttpClient client = new HttpClient();

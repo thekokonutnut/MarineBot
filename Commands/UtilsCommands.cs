@@ -10,7 +10,7 @@ namespace MarineBot.Commands
 {
     [Group("Utils"),Aliases("u")]
     [Description("Comandos de utilidad variada.")]
-    public class UtilsCommands : BaseCommandModule
+    internal class UtilsCommands : BaseCommandModule
     {
         private readonly Config _config;
 
@@ -19,8 +19,15 @@ namespace MarineBot.Commands
             _config = (Config)serviceProvider.GetService(typeof(Config));
         }
 
-        [Command("roll")]
-        [Description("Suelta un número al azar.")]
+        [GroupCommand(), Hidden()]
+        public async Task MainCommand(CommandContext ctx)
+        {
+            var cmds = ctx.CommandsNext;
+            var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), ctx.Command.QualifiedName);
+            await cmds.ExecuteCommandAsync(context);
+        }
+
+        [Command("roll"), Description("Suelta un número al azar.")]
         public async Task RollCommand(CommandContext ctx, [Description("Número máximo.")] int max, [Description("Número mínimo.")] int min = 0)
         {
             try
@@ -35,9 +42,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("choose")]
-        [Description("Elige una de las opciones brindadas.")]
-        public async Task ChooseCommand(CommandContext ctx, [Description("Opciones.")] params string[] options)
+        [Command("choose"), Description("Elige una de las opciones brindadas.")]
+        public async Task ChooseCommand(CommandContext ctx, [Description("Opciones."), RemainingText()] params string[] options)
         {
             try
             {
@@ -56,9 +62,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("duda")]
-        [Description("Aclara tus dudas.")]
-        public async Task DudaCommand(CommandContext ctx, [Description("Duda")] string duda)
+        [Command("duda"), Description("Aclara tus dudas.")]
+        public async Task DudaCommand(CommandContext ctx, [Description("Duda"), RemainingText()] string duda)
         {
             try
             {
@@ -73,9 +78,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("eval")]
-        [Description("Evalua una expresión.")]
-        public async Task EvalCommand(CommandContext ctx, [Description("Expresión")] string expresion)
+        [Command("eval"), Description("Evalua una expresión.")]
+        public async Task EvalCommand(CommandContext ctx, [Description("Expresión"), RemainingText()] string expresion)
         {
             try
             {
@@ -89,10 +93,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("purge")]
-        [Description("Elimina la cantidad especificada de mensajes.")]
-        [RequireUserPermissions(Permissions.Administrator)]
-        [RequireBotPermissions(Permissions.ManageMessages)]    
+        [Command("purge"), Description("Elimina la cantidad especificada de mensajes.")]
+        [RequireUserPermissions(Permissions.ManageMessages), RequireBotPermissions(Permissions.ManageMessages)]    
         public async Task PurgeCommand(CommandContext ctx, [Description("Cantidad de mensajes")] uint amount)
         {
             try

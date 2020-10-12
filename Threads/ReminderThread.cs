@@ -10,7 +10,7 @@ using MarineBot.Helpers;
 
 namespace MarineBot.Threads
 {
-    public class ReminderThread
+    class ReminderThread
     {
         private CancellationTokenSource _cts;
         private ReminderTable _reminderTable;

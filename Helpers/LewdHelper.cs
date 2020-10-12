@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace MarineBot.Helpers
 {
-    class LewdHelper
+    internal class LewdHelper
     {
 
         private static readonly HttpClient client = new HttpClient();

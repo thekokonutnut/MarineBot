@@ -3,24 +3,30 @@ using System.Linq;
 using System.Text;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
+using MarineBot.Helpers;
 
-namespace MarineBot.Helpers
+namespace MarineBot.Entities
 {
     internal class HelpFormatter : BaseHelpFormatter
     {
         public DiscordEmbedBuilder EmbedBuilder { get; }
         private Command Command { get; set; }
+        private string _prefix;
 
         public HelpFormatter(CommandContext ctx)
             : base(ctx)
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
-                .WithTitle("Help")
+                .WithTitle(":wheelchair: Ayuda")
                 .WithColor(0x007FFF)
                 .WithThumbnailUrl(FacesHelper.GetIdleFace());
+
+            var _config = (Config)ctx.CommandsNext.Services.GetService(typeof(Config));
+            _prefix = _config.Prefix;
         }
 
         public override BaseHelpFormatter WithCommand(Command command)
@@ -29,13 +35,10 @@ namespace MarineBot.Helpers
 
             this.EmbedBuilder.WithDescription($"{Formatter.InlineCode(command.Name)}: {command.Description ?? "Sin descripción."}");
 
-            if (command is CommandGroup cgroup && cgroup.IsExecutableWithoutSubcommands)
-                this.EmbedBuilder.WithDescription($"{this.EmbedBuilder.Description}\n\nEste grupo puede ejecutarse como un comándo solo.");
-
             if (command.Aliases?.Any() == true)
                 this.EmbedBuilder.AddField("Aliases", string.Join(", ", command.Aliases.Select(Formatter.InlineCode)), false);
 
-            if (command.Overloads?.Any() == true)
+            if (command.Overloads?.Any() == true && command.Parent != null)
             {
                 var sb = new StringBuilder();
 
@@ -54,7 +57,8 @@ namespace MarineBot.Helpers
                     sb.Append('\n');
                 }
 
-                this.EmbedBuilder.AddField("Argumentos", sb.ToString().Trim(), false);
+                this.EmbedBuilder.AddField("Modo de uso", sb.ToString().Trim(), false);
+                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
             }
 
             return this;
@@ -69,7 +73,7 @@ namespace MarineBot.Helpers
                 {
                     foreach (var ovl in cmd.Overloads.OrderByDescending(x => x.Priority))
                     {
-                        sb.Append('`').Append(cmd.QualifiedName);
+                        sb.Append('`').Append(_prefix + cmd.QualifiedName);
 
                         foreach (var arg in ovl.Arguments)
                             sb.Append(arg.IsOptional || arg.IsCatchAll ? " [" : " <").Append(arg.Name).Append(arg.IsCatchAll ? "..." : "").Append(arg.IsOptional || arg.IsCatchAll ? ']' : '>');
@@ -81,8 +85,9 @@ namespace MarineBot.Helpers
                 }
 
                 this.EmbedBuilder.AddField("Comándos", sb.ToString().Trim(), false);
+                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
             } else {
-                this.EmbedBuilder.AddField("Grupos", string.Join(", ", subcommands.Select(x => Formatter.InlineCode(x.Name))), false);
+                this.EmbedBuilder.AddField("Comándos", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
             }
 
             return this;
@@ -91,7 +96,7 @@ namespace MarineBot.Helpers
         public override CommandHelpMessage Build()
         {
             if (this.Command == null)
-                this.EmbedBuilder.WithDescription("Mostrando todos los grupos de comándos. Especifica un grupo para ver sus comándos.");
+                this.EmbedBuilder.WithDescription("Comándos principales.");
 
             return new CommandHelpMessage(embed: this.EmbedBuilder.Build());
         }

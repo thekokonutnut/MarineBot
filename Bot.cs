@@ -16,6 +16,9 @@ using MarineBot.Controller;
 using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext.Exceptions;
 using MarineBot.Entities;
+using System.Linq;
+using Microsoft.Extensions.Logging;
+using DSharpPlus.Interactivity.Extensions;
 
 namespace MarineBot
 {
@@ -52,10 +55,9 @@ namespace MarineBot
             _client = new DiscordClient(new DiscordConfiguration()
             {
                 AutoReconnect           = true,
-                LogLevel                = LogLevel.Debug,
+                MinimumLogLevel         = LogLevel.Debug,
                 Token                   = _config.Token,
-                TokenType               = TokenType.Bot,
-                UseInternalLogHandler   = true
+                TokenType               = TokenType.Bot
             });
 
             _interactivity = _client.UseInteractivity(new InteractivityConfiguration()
@@ -95,8 +97,8 @@ namespace MarineBot
                 Services                = serviceProvider
             });
 
-            _cnext.CommandExecuted  += Commands_CommandExecuted;
-            _cnext.CommandErrored   += Commands_CommandErrored;
+            _cnext.CommandExecuted += Commands_CommandExecuted; ;
+            _cnext.CommandErrored += Commands_CommandErrored; ;
 
             _cnext.SetHelpFormatter<HelpFormatter>();
             _cnext.RegisterCommands<Commands.ManagementCommands>();
@@ -114,15 +116,24 @@ namespace MarineBot
             _client.ClientErrored   += OnClientErrored;
         }
 
-        private async Task Commands_CommandErrored(CommandErrorEventArgs e)
+        private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
-            _client.DebugLogger.LogMessage(LogLevel.Error, "MarineBot", $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
+            _client.Logger.Log(LogLevel.Information, "MarineBot", $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
+            return Task.CompletedTask;
+        }
+
+        private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
+        {
+            _client.Logger.Log(LogLevel.Error, "MarineBot", $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
             var ex = e.Exception;
 
             if (ex is ChecksFailedException)
             {
-                var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-                await MessageHelper.SendErrorEmbed(e.Context, $"{emoji} No tienes permiso para ejecutar ese comándo.");
+                var checks = (ex as ChecksFailedException).FailedChecks;
+                if (checks.Any(c => c is DSharpPlus.CommandsNext.Attributes.RequireNsfwAttribute))
+                    await MessageHelper.SendErrorEmbed(e.Context, "No puedes ejecutar este comándo en un canál no NSFW.");
+                else
+                    await MessageHelper.SendErrorEmbed(e.Context, "No tienes permiso para ejecutar este comándo.");
             }
             else if (ex is ArgumentException && e.Command != null)
             {
@@ -140,32 +151,25 @@ namespace MarineBot
                 }
             }
         }
-
-        private Task Commands_CommandExecuted(CommandExecutionEventArgs e)
+        private Task OnClientErrored(DiscordClient sender, ClientErrorEventArgs e)
         {
-            _client.DebugLogger.LogMessage(LogLevel.Info, "MarineBot", $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
+            _client.Logger.Log(LogLevel.Error, "MarineBot", $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
             return Task.CompletedTask;
         }
 
-        private Task OnClientErrored(ClientErrorEventArgs e)
+        private Task OnGuildAvailable(DiscordClient sender, GuildCreateEventArgs e)
         {
-            _client.DebugLogger.LogMessage(LogLevel.Error, "MarineBot", $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
+            _client.Logger.Log(LogLevel.Information, "MarineBot", $"Guild available: {e.Guild.Name}", DateTime.Now);
             return Task.CompletedTask;
         }
 
-        private Task OnReadyAsync(ReadyEventArgs e)
+        private Task OnReadyAsync(DiscordClient sender, ReadyEventArgs e)
         {
             _ = Task.Factory.StartNew(() => _reminderthread.RunAsync());
             _ = Task.Factory.StartNew(() => _pollthread.RunAsync());
             _ = Task.Factory.StartNew(() => _presenceThread.RunAsync());
 
-            _client.DebugLogger.LogMessage(LogLevel.Info, "MarineBot", "Client is ready to process events.", DateTime.Now);
-            return Task.CompletedTask;
-        }
-
-        private Task OnGuildAvailable(GuildCreateEventArgs e)
-        {
-            _client.DebugLogger.LogMessage(LogLevel.Info, "MarineBot", $"Guild available: {e.Guild.Name}", DateTime.Now);
+            _client.Logger.Log(LogLevel.Information, "MarineBot", "Client is ready to process events.", DateTime.Now);
             return Task.CompletedTask;
         }
 

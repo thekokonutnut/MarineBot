@@ -32,9 +32,8 @@ namespace MarineBot.Commands
             await cmds.ExecuteCommandAsync(context);
         }
 
-        [Command("imgur")]
-        [Description("Obtiene una imágen al azar dado una o más etiquetas.")]
-        public async Task ImgurCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar")] string tag)
+        [Command("imgur"), Description("Obtiene una imágen al azar dado una o más etiquetas.")]
+        public async Task ImgurCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
         {
             try
             {
@@ -51,9 +50,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("safebooru")]
-        [Description("Obtiene una imágen al azar dado una o más etiquetas.")]
-        public async Task SafebooruCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar")] string tag)
+        [Command("safebooru"), Description("Obtiene una imágen al azar dado una o más etiquetas.")]
+        public async Task SafebooruCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
         {
             try
             {
@@ -70,16 +68,10 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("e621")]
-        [Description("Obtiene una imágen al azar dado una o más etiquetas.")]
-        public async Task E621Command(CommandContext ctx, [Description("Etiqueta(s) a buscar")] string tag)
+        [Command("e621"), Description("Obtiene una imágen al azar dado una o más etiquetas.")]
+        [RequireNsfw()]
+        public async Task E621Command(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
         {
-            if (!ctx.Channel.IsNSFW)
-            {
-                await MessageHelper.SendWarningEmbed(ctx, "No puedes correr este comándo en un canal no NSFW.");
-                return;
-            }
-
             try
             {
                 var ranImg = await LewdHelper.E621GetRandomImage(tag);

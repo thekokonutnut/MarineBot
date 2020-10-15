@@ -25,12 +25,11 @@ namespace MarineBot.Threads
 
         private async Task TriggerReminder(Reminder reminder)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x003487),
-                Title = "Recordatorio",
-                ThumbnailUrl = FacesHelper.GetSuccessFace()
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0x003487)
+                .WithTitle("Recordatorio")
+                .WithThumbnail(FacesHelper.GetSuccessFace());
+
             embed.AddField(reminder.Name, reminder.Description);
 
             var channel = await _client.GetChannelAsync(reminder.Channel);

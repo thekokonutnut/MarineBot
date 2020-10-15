@@ -57,14 +57,13 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x347aeb),
-                Description = "Escribe una descripción:",
-                Footer = MessageHelper.BuildFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación."),
-                Title = "Creando recordatorio **" + name + "**",
-                ThumbnailUrl = FacesHelper.GetIdleFace()
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0x347aeb)
+                .WithDescription("Escribe una descripción:")
+                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
+                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithThumbnail(FacesHelper.GetIdleFace());
+
             var message = await ctx.RespondAsync(embed: embed);
 
             var cancelCmd = ctx.Prefix + "cancel";
@@ -85,14 +84,13 @@ namespace MarineBot.Commands
 
             await descMsg.Result.DeleteAsync();
 
-            embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x347aeb),
-                Description = "A que hora? (HH:MM):",
-                Footer = MessageHelper.BuildFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación."),
-                Title = "Creando recordatorio **" + name + "**",
-                ThumbnailUrl = FacesHelper.GetIdleFace()
-            };
+            embed = new DiscordEmbedBuilder()
+                .WithColor(0x347aeb)
+                .WithDescription("A que hora? (HH:MM):")
+                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
+                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithThumbnail(FacesHelper.GetIdleFace());
+
             embed.AddField("Ahora mismo son las: ", DateTime.UtcNow.ToString("HH:mm"));
             await message.ModifyAsync(null, new Optional<DiscordEmbed>(embed));
 
@@ -113,14 +111,13 @@ namespace MarineBot.Commands
 
             await timeMsg.Result.DeleteAsync();
 
-            embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x347aeb),
-                Description = "En que canal debo anunciar:",
-                Footer = MessageHelper.BuildFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación."),
-                Title = "Creando recordatorio **" + name + "**",
-                ThumbnailUrl = FacesHelper.GetIdleFace()
-            };
+            embed = new DiscordEmbedBuilder()
+                .WithColor(0x347aeb)
+                .WithDescription("En que canal debo anunciar:")
+                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
+                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithThumbnail(FacesHelper.GetIdleFace());
+
             await message.ModifyAsync(null, new Optional<DiscordEmbed>(embed));
 
             var channelMsg = await _interactivity.WaitForMessageAsync(xm => xm.Author.Id == ctx.User.Id && (xm.Content.StartsWith("<#") || xm.Content.ToLower() == cancelCmd), TimeSpan.FromSeconds(30));
@@ -186,7 +183,7 @@ namespace MarineBot.Commands
             var embedBuilder = new DiscordEmbedBuilder()
                 .WithTitle("Reminders")
                 .WithColor(0x007FFF)
-                .WithThumbnailUrl(FacesHelper.GetIdleFace());
+                .WithThumbnail(FacesHelper.GetIdleFace());
 
             var remindersList = _reminderTable.GetReminders();
             var guildList = new List<Reminder>();

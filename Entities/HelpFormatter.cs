@@ -23,7 +23,7 @@ namespace MarineBot.Entities
             this.EmbedBuilder = new DiscordEmbedBuilder()
                 .WithTitle(":wheelchair: Ayuda")
                 .WithColor(0x007FFF)
-                .WithThumbnailUrl(FacesHelper.GetIdleFace());
+                .WithThumbnail(FacesHelper.GetIdleFace());
 
             var _config = (Config)ctx.CommandsNext.Services.GetService(typeof(Config));
             _prefix = _config.Prefix;

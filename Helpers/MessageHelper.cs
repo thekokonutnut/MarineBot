@@ -12,25 +12,23 @@ namespace MarineBot.Helpers
     {
         public static async Task<DiscordMessage> SendInfoEmbed(CommandContext ctx, string message)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x3d9dd1),
-                Description = message,
-                Title = ":paperclip: Info",
-                Thumbnail = BuildThumb(FacesHelper.GetErrorFace())
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0x3d9dd1)
+                .WithDescription(message)
+                .WithTitle(":paperclip: Info")
+                .WithThumbnail(FacesHelper.GetIdleFace());
+
             return await ctx.RespondAsync(embed: embed);
         }
 
         public static async Task<DiscordMessage> SendErrorEmbed(CommandContext ctx, string message, bool delete = true)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0xAA0000),
-                Description = message,
-                Title = ":name_badge: Error",
-                Thumbnail = BuildThumb(FacesHelper.GetErrorFace())
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0xAA0000)
+                .WithDescription(message)
+                .WithTitle(":name_badge: Error")
+                .WithThumbnail(FacesHelper.GetErrorFace());
+
             var msg = await ctx.RespondAsync(embed: embed);
             if (delete)
                 new Thread(async () => {
@@ -42,45 +40,24 @@ namespace MarineBot.Helpers
 
         public static async Task<DiscordMessage> SendWarningEmbed(CommandContext ctx, string message)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0xAAAA00),
-                Description = message,
-                Title = ":radioactive: Warning",
-                Thumbnail = BuildThumb(FacesHelper.GetSuccessFace())
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0xAAAA00)
+                .WithDescription(message)
+                .WithTitle(":radioactive: Warning")
+                .WithThumbnail(FacesHelper.GetWarningFace());
+
             return await ctx.RespondAsync(embed: embed);
         }
 
         public static async Task<DiscordMessage> SendSuccessEmbed(CommandContext ctx, string message)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x00AA00),
-                Description = message,
-                Title = ":ballot_box_with_check: Success",
-                Thumbnail = BuildThumb(FacesHelper.GetSuccessFace())
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0x00AA00)
+                .WithDescription(message)
+                .WithTitle(":ballot_box_with_check: Success")
+                .WithThumbnail(FacesHelper.GetSuccessFace());
+
             return await ctx.RespondAsync(embed: embed);
-        }
-
-        public static DiscordEmbedBuilder.EmbedFooter BuildFooter(string text, string iconurl = "")
-        {
-            var footer = new DiscordEmbedBuilder.EmbedFooter
-            {
-                Text = text,
-                IconUrl = iconurl
-            };
-            return footer;
-        }
-
-        public static DiscordEmbedBuilder.EmbedThumbnail BuildThumb(string uri)
-        {
-            var thumb = new DiscordEmbedBuilder.EmbedThumbnail
-            {
-                Url = FacesHelper.GetIdleFace()
-            };
-            return thumb;
         }
     }
 }

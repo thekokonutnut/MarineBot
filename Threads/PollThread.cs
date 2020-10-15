@@ -36,12 +36,11 @@ namespace MarineBot.Threads
         }
         private DiscordEmbedBuilder GenerateEmbed(Poll poll, int[] reactionCount, bool terminated = false)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Color = new DiscordColor(0x3275a8),
-                Title = poll.Title,
-                ThumbnailUrl = terminated ? FacesHelper.GetSuccessFace() : FacesHelper.GetIdleFace()
-            };
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(0x3275a8)
+                .WithTitle(poll.Title)
+                .WithThumbnail(terminated ? FacesHelper.GetSuccessFace() : FacesHelper.GetIdleFace());
+
             var options = poll.Options;
 
             if (terminated)

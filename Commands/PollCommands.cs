@@ -11,6 +11,7 @@ using MarineBot.Entities;
 using MarineBot.Helpers;
 using MarineBot.Controller;
 using System.Linq;
+using MarineBot.Attributes;
 
 namespace MarineBot.Commands
 {
@@ -36,9 +37,12 @@ namespace MarineBot.Commands
         }
 
         [Command("create"), Description("Crea una encuesta.")]
+        [Example("polls create \"L4D2 Night\" 3600", "p create \"Is snes gay\" 60 Yes Yes Yes", "p create \"Best game\" 120 \"Minecraft 2\" \"Terraria 4\" \"Pete Adventures\"")]
         public async Task CreatePollCommand(CommandContext ctx, [Description("Titulo de la encuesta.")] string title, 
                           [Description("Tiempo en segundos.")] uint time = 10, [Description("Opciones."), RemainingText()] params string[] options)
         {
+            if (options == null) throw new ArgumentException();
+
             if (title.Length == 0)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Necesitas especificar un titulo.");

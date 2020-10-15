@@ -15,7 +15,7 @@ namespace MarineBot.Helpers
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0x3d9dd1)
                 .WithDescription(message)
-                .WithTitle(":paperclip: Info")
+                .WithTitle(":paperclip::paperclip::paperclip: Info")
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
             return await ctx.RespondAsync(embed: embed);
@@ -26,7 +26,7 @@ namespace MarineBot.Helpers
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0xAA0000)
                 .WithDescription(message)
-                .WithTitle(":name_badge: Error")
+                .WithTitle(":name_badge::name_badge::name_badge: Error")
                 .WithThumbnail(FacesHelper.GetErrorFace());
 
             var msg = await ctx.RespondAsync(embed: embed);
@@ -43,7 +43,7 @@ namespace MarineBot.Helpers
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0xAAAA00)
                 .WithDescription(message)
-                .WithTitle(":radioactive: Warning")
+                .WithTitle(":radioactive::radioactive::radioactive: Warning")
                 .WithThumbnail(FacesHelper.GetWarningFace());
 
             return await ctx.RespondAsync(embed: embed);
@@ -54,7 +54,7 @@ namespace MarineBot.Helpers
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0x00AA00)
                 .WithDescription(message)
-                .WithTitle(":ballot_box_with_check: Success")
+                .WithTitle(":white_check_mark::white_check_mark::white_check_mark: Success")
                 .WithThumbnail(FacesHelper.GetSuccessFace());
 
             return await ctx.RespondAsync(embed: embed);

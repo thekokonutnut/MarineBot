@@ -13,15 +13,15 @@ namespace MarineBot.Helpers
 {
     internal class SafebooruImage
     {
-        public string @Id { get; set; }
-        public string @File_url { get; set; }
+        public string Id;
+        public string File_url;
     }
 
     internal static class SafebooruHelper
     {
         private static readonly HttpClient client = new HttpClient();
 
-        public static async Task<string> GetRandomImage(string tag)
+        public static async Task<SafebooruImage> GetRandomImage(string tag)
         {
             var request = new HttpRequestMessage()
             {
@@ -35,7 +35,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                return $"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}";
+                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             XmlDocument xmlResult = new XmlDocument();
             xmlResult.LoadXml(respstring);
@@ -44,14 +44,20 @@ namespace MarineBot.Helpers
 
             int totalItems = (int)searchResult["posts"]["@count"];
             if (totalItems <= 0)
-                return $"No se encontraron imágenes con esa tag.";
+                throw new Exception("No se encontraron imágenes con esa tag");
 
             IList<JToken> postsResult = searchResult["posts"]["post"].ToList();
 
             var random = new Random();
             var ranCount = random.Next(0, postsResult.Count);
 
-            return postsResult[ranCount]["@file_url"].ToString();
+            SafebooruImage result = new SafebooruImage()
+            {
+                Id = postsResult[ranCount]["@id"].ToString(),
+                File_url = postsResult[ranCount]["@file_url"].ToString()
+            };
+
+            return result;
         }
     }
 }

@@ -23,6 +23,9 @@ namespace MarineBot.Helpers
         [JsonProperty("imgur_clientid")]
         internal string imgurClientID = "";
 
+        [JsonProperty("furaffinity_acc")]
+        internal FurAffinityAuth _furAffinityAuth = new FurAffinityAuth();
+
         [JsonProperty("duda_answers")]
         internal string[] dudaAnswers = {"Yes", "No", "Maybe"};
 
@@ -44,5 +47,23 @@ namespace MarineBot.Helpers
                 sw.Write(JsonConvert.SerializeObject(this));
             }
         }
+    }
+    internal class DatabaseConfig
+    {
+        [JsonProperty("server")]
+        internal string Server = "";
+        [JsonProperty("user")]
+        internal string User = "";
+        [JsonProperty("password")]
+        internal string Password = "";
+        [JsonProperty("database")]
+        internal string Database = "";
+    }
+    internal class FurAffinityAuth
+    {
+        [JsonProperty("cookie_a")]
+        internal string CookieA = "";
+        [JsonProperty("cookie_b")]
+        internal string CookieB = "";
     }
 }

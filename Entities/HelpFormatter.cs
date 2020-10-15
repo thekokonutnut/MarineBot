@@ -7,6 +7,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Converters;
 using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
+using MarineBot.Attributes;
 using MarineBot.Helpers;
 
 namespace MarineBot.Entities
@@ -21,7 +22,7 @@ namespace MarineBot.Entities
             : base(ctx)
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
-                .WithTitle(":wheelchair: Ayuda")
+                .WithTitle(":wheelchair::wheelchair::wheelchair: Ayuda")
                 .WithColor(0x007FFF)
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
@@ -59,6 +60,16 @@ namespace MarineBot.Entities
 
                 this.EmbedBuilder.AddField("Modo de uso", sb.ToString().Trim(), false);
                 this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
+            }
+            if (command.CustomAttributes.Any(att => att is ExampleAttribute))
+            {
+                ExampleAttribute exampleAtt = (ExampleAttribute)command.CustomAttributes.Where(att => att is ExampleAttribute).FirstOrDefault();
+                var sb = new StringBuilder();
+                foreach (var item in exampleAtt.Example)
+                {
+                    sb.Append($"`{_prefix}{item}`\n");
+                }
+                this.EmbedBuilder.AddField("Ejemplos", sb.ToString().Trim(), false);
             }
 
             return this;

@@ -15,6 +15,7 @@ using MarineBot.Entities;
 using MarineBot.Threads;
 using MarineBot.Database;
 using MarineBot.Controller;
+using MarineBot.Attributes;
 
 namespace MarineBot.Commands
 {
@@ -43,8 +44,11 @@ namespace MarineBot.Commands
         }
 
         [Command("create"), Description("Crea un recordatorio.")]
+        [Example("reminder create La torta en el horno", "r create Que")]
         public async Task CreateReminderCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
         {
+            if (name == null) throw new ArgumentException();
+
             if (_cmdinput.IsAvailable(ctx.User.Id))
                 _cmdinput.SetUserAt(ctx.User.Id, MethodBase.GetCurrentMethod());
             else
@@ -163,8 +167,11 @@ namespace MarineBot.Commands
         }
 
         [Command("delete"), Aliases("remove"), Description("Elimina el recordatorio especificado.")]
+        [Example("reminder delete Que", "r remove The Game")]
         public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
         {
+            if (name == null) throw new ArgumentException();
+
             if (!_reminderTable.RemoveReminder(name))
             {
                 await MessageHelper.SendWarningEmbed(ctx, $"No se encontró recordatorio con esa ID.");

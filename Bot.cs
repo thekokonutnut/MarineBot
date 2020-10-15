@@ -19,6 +19,7 @@ using MarineBot.Entities;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using DSharpPlus.Interactivity.Extensions;
+using MarineBot.Converters;
 
 namespace MarineBot
 {
@@ -99,6 +100,9 @@ namespace MarineBot
 
             _cnext.CommandExecuted  += Commands_CommandExecuted;
             _cnext.CommandErrored   += Commands_CommandErrored;
+
+            _cnext.RegisterConverter(new DictConverter());
+            _cnext.RegisterUserFriendlyTypeName<Dictionary<string, string>>("key-value pairs");
 
             _cnext.SetHelpFormatter<HelpFormatter>();
             _cnext.RegisterCommands<Commands.ManagementCommands>();

@@ -105,7 +105,6 @@ namespace MarineBot
             _cnext.RegisterUserFriendlyTypeName<Dictionary<string, string>>("key-value pairs");
 
             _cnext.SetHelpFormatter<HelpFormatter>();
-            _cnext.RegisterCommands<Commands.ManagementCommands>();
             _cnext.RegisterCommands<Commands.ReminderCommands>();
             _cnext.RegisterCommands<Commands.PollCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();

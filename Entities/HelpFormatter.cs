@@ -23,7 +23,7 @@ namespace MarineBot.Entities
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
                 .WithTitle(":wheelchair::wheelchair::wheelchair: Ayuda")
-                .WithColor(0x007FFF)
+                .WithColor(0xff3030)
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
             var _config = (Config)ctx.CommandsNext.Services.GetService(typeof(Config));
@@ -59,7 +59,7 @@ namespace MarineBot.Entities
                 }
 
                 this.EmbedBuilder.AddField("Modo de uso", sb.ToString().Trim(), false);
-                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
+                this.EmbedBuilder.WithFooter("<> = Requerido [] = Opcional");
             }
             if (command.CustomAttributes.Any(att => att is ExampleAttribute))
             {
@@ -95,10 +95,10 @@ namespace MarineBot.Entities
                     }
                 }
 
-                this.EmbedBuilder.AddField("Comándos", sb.ToString().Trim(), false);
+                this.EmbedBuilder.AddField("Comandos", sb.ToString().Trim(), false);
                 this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
             } else {
-                this.EmbedBuilder.AddField("Comándos", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
+                this.EmbedBuilder.AddField("Comandos principales sin categorizar", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
             }
 
             return this;
@@ -107,7 +107,21 @@ namespace MarineBot.Entities
         public override CommandHelpMessage Build()
         {
             if (this.Command == null)
-                this.EmbedBuilder.WithDescription("Comándos principales.");
+            {
+                System.DateTime buildDate = System.IO.File.GetLastWriteTime(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+                this.EmbedBuilder.WithDescription(@$"Un bot de propósito misceláneo, 
+                                                     probablemente no muy útil. 
+                                                     Creado para uso personal, por mí.
+
+                                                     [Repositorio en GitHub](https://github.com/thekokonutnut/MarineBot)
+                                                     [Current build: {buildDate}]");
+                this.EmbedBuilder.AddField("⠀", @$"Usa {Formatter.InlineCode(_prefix + "help <comando>")} para información
+                                                  de uso del comando.
+                                                  O solo el comando sin argumentos, eso
+                                                  también funciona.");
+                this.EmbedBuilder.Title = "Introducing: Doom Bot";
+            }
 
             return new CommandHelpMessage(embed: this.EmbedBuilder.Build());
         }

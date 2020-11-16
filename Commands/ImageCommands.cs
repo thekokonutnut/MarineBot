@@ -130,7 +130,7 @@ namespace MarineBot.Commands
         [Command("furaffinity"), Description("Obtiene una imágen de FurAffinity al azar. Es posible utilizar opciones de búsqueda.")]
         [Example("images furaffinity", "img furaffinity rating:general type:human", "img furaffinity gender:female type:anime")]
         [RequireNsfw()]
-        public async Task FuraffinityCommand(CommandContext ctx, [Description("Opciones de busquedad"), RemainingText()] Dictionary<string, string> options = null)
+        public async Task FuraffinityCommand(CommandContext ctx, [Description("Opciones de busquedad (type, gender, rating)"), RemainingText()] Dictionary<string, string> options = null)
         {
             FurrAf_BrowseOptions searchOptions = null;
             if (options != null && options.Count != 0)

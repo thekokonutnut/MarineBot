@@ -109,6 +109,7 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.PollCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();
             _cnext.RegisterCommands<Commands.ImageCommands>();
+            _cnext.RegisterCommands<Commands.ActionCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
             _pollthread     = new PollThread(serviceProvider);

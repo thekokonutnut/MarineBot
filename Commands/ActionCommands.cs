@@ -42,11 +42,18 @@ namespace MarineBot.Commands
             {
                 var generatedGif = ImageHelper.GenerateGif("gifs/slap/", avatar1, avatar2);
                 await ctx.RespondWithFileAsync("slap.gif", generatedGif);
+
+                generatedGif.Dispose();
             }
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message, false);
                 throw;
+            }
+            finally
+            {
+                avatar1.Dispose();
+                avatar2.Dispose();
             }
         }
     }

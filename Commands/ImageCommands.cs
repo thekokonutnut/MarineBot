@@ -97,6 +97,36 @@ namespace MarineBot.Commands
             }
         }
 
+        [Command("gelbooru"), Description("Obtiene una imágen de Gelbooru al azar dado una o más etiquetas.")]
+        [Example("images gelbooru blue_eyes blush", "img gelbooru touhou highres")]
+        [RequireNsfw()]
+        public async Task GelbooruCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
+        {
+            if (tag == null) throw new ArgumentException();
+            try
+            {
+                try
+                {
+                    var ranImg = await GelbooruHelper.GetRandomImage(tag);
+                    var embed = new DiscordEmbedBuilder()
+                        .WithColor(0x3d9dd1)
+                        .WithFooter($"https://gelbooru.com/index.php?page=post&s=view&id={ranImg.Id}")
+                        .WithImageUrl(ranImg.File_url);
+
+                    await ctx.RespondAsync(embed: embed);
+                }
+                catch (Exception e)
+                {
+                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
+                }
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+                throw;
+            }
+        }
+
         [Command("e621"), Description("Obtiene una imágen de E621 al azar dado una o más etiquetas.")]
         [Example("images e621 rating:safe human_only", "img e621 -anthro -furry")]
         [RequireNsfw()]

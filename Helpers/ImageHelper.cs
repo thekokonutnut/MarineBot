@@ -56,7 +56,11 @@ namespace MarineBot.Helpers
                 baseImage.Dispose();
                 destImage.Dispose();
                 graphics.Dispose();
+                memoryStream.Dispose();
             }
+
+            maskedAvatar1.Dispose();
+            maskedAvatar2.Dispose();
 
             var settings = new QuantizeSettings();
             settings.Colors = 256;
@@ -67,6 +71,7 @@ namespace MarineBot.Helpers
             collection.Write(outputStream, MagickFormat.Gif);
             outputStream.Seek(0, SeekOrigin.Begin);
             Console.WriteLine("ended gif job.");
+            collection.Dispose();
 
             return outputStream;
         }

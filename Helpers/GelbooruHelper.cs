@@ -27,11 +27,11 @@ namespace MarineBot.Helpers
     {
         private static readonly HttpClient client = new HttpClient();
 
-        public static async Task<GelbooruImage> GetRandomImage(string tag)
+        public static async Task<int> GetPostCount(string tags)
         {
             var request = new HttpRequestMessage()
             {
-                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=post&q=index&tags={tag}"),
+                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=post&q=index&limit=0&tags={tags}"),
                 Method = HttpMethod.Get,
             };
 
@@ -49,30 +49,30 @@ namespace MarineBot.Helpers
             JObject searchResult = JObject.Parse(JsonConvert.SerializeXmlNode(xmlResult));
 
             int totalItems = (int)searchResult["posts"]["@count"];
-            if (totalItems <= 0)
-                throw new Exception("No se encontraron imágenes con esa tag");
-
-            IList<JToken> postsResult = searchResult["posts"]["post"].ToList();
-
-            var random = new Random();
-            var ranCount = random.Next(0, postsResult.Count);
-
-            GelbooruImage result = new GelbooruImage()
-            {
-                Id = postsResult[ranCount]["@id"].ToString(),
-                File_url = postsResult[ranCount]["@file_url"].ToString()
-            };
-
-            return result;
+            return totalItems;
         }
 
-        public static async Task<List<GelbooruTag>> SearchForTag(string query)
+        public static async Task<GelbooruImage> GetRandomImage(string tags)
         {
-            query = query.Replace(" ", "_");
+            int postCount = await GetPostCount(tags);
+            int pageNum = 0;
+
+            if (postCount <= 0)
+                throw new Exception("No se encontraron imágenes con esa tag");
+
+            var random = new Random();
+
+            if (postCount > 100)
+            {
+                int maxPage = (int)Math.Ceiling((double)(postCount / 100));
+                if (maxPage > 200) maxPage = 200;
+
+                pageNum = random.Next(0, maxPage);
+            }
 
             var request = new HttpRequestMessage()
             {
-                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=tag&q=index&limit=10&order=des&orderby=count&name_pattern=%{query}%"),
+                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&pid={pageNum}&tags={tags}"),
                 Method = HttpMethod.Get,
             };
 
@@ -84,24 +84,52 @@ namespace MarineBot.Helpers
             if (status != 200)
                 throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
-            XmlDocument xmlResult = new XmlDocument();
-            xmlResult.LoadXml(respstring);
+            JArray searchResult = JArray.Parse(respstring);
 
-            JObject searchResult = JObject.Parse(JsonConvert.SerializeXmlNode(xmlResult));
+            var ranCount = random.Next(0, searchResult.Count);
 
-            IList<JToken> tagsResult = searchResult["tags"]["tag"].ToList();
+            GelbooruImage result = new GelbooruImage()
+            {
+                Id = searchResult[ranCount]["id"].ToString(),
+                File_url = searchResult[ranCount]["file_url"].ToString()
+            };
 
-            if (tagsResult.Count <= 0)
-                throw new Exception("No se encontraron tags");
+            return result;
+        }
 
-            List<GelbooruTag> result = new List<GelbooruTag>();
+        public static async Task<List<GelbooruTag>> SearchForTag(string query)
+        {
+            query = query.Replace(" ", "_");
 
-            for (int i = 0; i < tagsResult.Count; i++)
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=tag&q=index&limit=10&order=des&orderby=count&json=1&name_pattern=%{query}%"),
+                Method = HttpMethod.Get,
+            };
+
+            var response = await client.SendAsync(request);
+            var respstring = await response.Content.ReadAsStringAsync();
+
+            int status = (int)response.StatusCode;
+
+            if (status != 200)
+                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+
+            JArray searchResult = JArray.Parse(respstring);
+
+            var tagCount = searchResult.Count;
+
+            if (tagCount <= 0)
+                throw new Exception("No se encontraron tags.");
+
+            var result = new List<GelbooruTag>();
+
+            for (int i = 0; i < tagCount; i++)
             {
                 var currtag = new GelbooruTag()
                 {
-                    Name = tagsResult[i]["@name"].ToString(),
-                    Count = tagsResult[i]["@count"].ToString()
+                    Name = searchResult[i]["tag"].ToString(),
+                    Count = searchResult[i]["count"].ToString()
                 };
 
                 result.Add(currtag);

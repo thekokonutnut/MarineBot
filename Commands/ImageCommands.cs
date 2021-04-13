@@ -127,6 +127,38 @@ namespace MarineBot.Commands
             }
         }
 
+        [Command("gelbooru:tag"), Description("Busca etiquetas de gelbooru.")]
+        [Example("images gelbooru:tag nezuko", "img gelbooru:tag shingeki")]
+        public async Task GelbooruTagCommand(CommandContext ctx, [Description("Etiqueta a buscar"), RemainingText()] string tag)
+        {
+            if (tag == null) throw new ArgumentException();
+            try
+            {
+                try
+                {
+                    var ranImg = await GelbooruHelper.SearchForTag(tag);
+
+                    var sb = new StringBuilder();
+
+                    for (int i = 0; i < ranImg.Count; i++)
+                    {
+                        sb.Append($"{i+1}. {Formatter.InlineCode(ranImg[i].Name)} ({ranImg[i].Count})\n");
+                    }
+
+                    await MessageHelper.SendSuccessEmbed(ctx, sb.ToString());
+                }
+                catch (Exception e)
+                {
+                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
+                }
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+                throw;
+            }
+        }
+
         [Command("e621"), Description("Obtiene una imágen de E621 al azar dado una o más etiquetas.")]
         [Example("images e621 rating:safe human_only", "img e621 -anthro -furry")]
         [RequireNsfw()]

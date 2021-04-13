@@ -17,6 +17,12 @@ namespace MarineBot.Helpers
         public string File_url;
     }
 
+    internal class GelbooruTag
+    {
+        public string Name;
+        public string Count;
+    }
+
     internal static class GelbooruHelper
     {
         private static readonly HttpClient client = new HttpClient();
@@ -56,6 +62,50 @@ namespace MarineBot.Helpers
                 Id = postsResult[ranCount]["@id"].ToString(),
                 File_url = postsResult[ranCount]["@file_url"].ToString()
             };
+
+            return result;
+        }
+
+        public static async Task<List<GelbooruTag>> SearchForTag(string query)
+        {
+            query = query.Replace(" ", "_");
+
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri($"https://gelbooru.com/index.php?page=dapi&s=tag&q=index&limit=10&order=des&orderby=count&name_pattern=%{query}%"),
+                Method = HttpMethod.Get,
+            };
+
+            var response = await client.SendAsync(request);
+            var respstring = await response.Content.ReadAsStringAsync();
+
+            int status = (int)response.StatusCode;
+
+            if (status != 200)
+                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+
+            XmlDocument xmlResult = new XmlDocument();
+            xmlResult.LoadXml(respstring);
+
+            JObject searchResult = JObject.Parse(JsonConvert.SerializeXmlNode(xmlResult));
+
+            IList<JToken> tagsResult = searchResult["tags"]["tag"].ToList();
+
+            if (tagsResult.Count <= 0)
+                throw new Exception("No se encontraron tags");
+
+            List<GelbooruTag> result = new List<GelbooruTag>();
+
+            for (int i = 0; i < tagsResult.Count; i++)
+            {
+                var currtag = new GelbooruTag()
+                {
+                    Name = tagsResult[i]["@name"].ToString(),
+                    Count = tagsResult[i]["@count"].ToString()
+                };
+
+                result.Add(currtag);
+            }
 
             return result;
         }

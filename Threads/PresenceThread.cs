@@ -33,7 +33,7 @@ namespace MarineBot.Threads
                 var ran = NumbersHelper.GetRandom(0, statusList.Length - 1);
                 var currStatus = statusList[ran];
 #if DEBUG
-                currStatus = "Developing this bot";
+                currStatus = "localhost xd";
 #endif
 
                 var activity = new DiscordActivity($"{currStatus} ({_config.Prefix}help)", ActivityType.Playing);

@@ -21,6 +21,7 @@ namespace MarineBot.Commands
 {
     [Group("Reminder"), Aliases("r")]
     [Description("Comandos de recordatorios.")]
+    [RequireGuild]
     internal class ReminderCommands : BaseCommandModule
     {
         private ReminderTable _reminderTable;

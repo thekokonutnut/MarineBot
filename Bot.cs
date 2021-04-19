@@ -91,7 +91,7 @@ namespace MarineBot
             {
                 CaseSensitive           = false,
                 EnableDefaultHelp       = true,
-                EnableDms               = false,
+                EnableDms               = true,
                 EnableMentionPrefix     = true,
                 StringPrefixes          = new string[] {_config.Prefix},
                 IgnoreExtraArguments    = false,

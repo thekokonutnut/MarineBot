@@ -23,14 +23,14 @@ namespace MarineBot.Helpers
         [JsonProperty("imgur_clientid")]
         internal string imgurClientID = "";
 
-        [JsonProperty("furaffinity_acc")]
-        internal FurAffinityAuth _furAffinityAuth = new FurAffinityAuth();
-
         [JsonProperty("duda_answers")]
         internal string[] dudaAnswers = {"Yes", "No", "Maybe"};
 
         [JsonProperty("status_messages")]
         internal string[] statusMessages = { "Gutting demons", "Cleaning hell", "Freeing the Earth" };
+
+        [JsonProperty("administrators")]
+        internal string[] administratorsList = { "<insert userid>" };
 
         public static Config LoadFromFile(string path)
         {
@@ -58,12 +58,5 @@ namespace MarineBot.Helpers
         internal string Password = "";
         [JsonProperty("database")]
         internal string Database = "";
-    }
-    internal class FurAffinityAuth
-    {
-        [JsonProperty("cookie_a")]
-        internal string CookieA = "";
-        [JsonProperty("cookie_b")]
-        internal string CookieB = "";
     }
 }

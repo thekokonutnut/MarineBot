@@ -17,6 +17,7 @@ namespace MarineBot.Commands
 {
     [Group("Polls"), Aliases("p")]
     [Description("Comandos de utilidad variada.")]
+    [RequireGuild]
     internal class PollCommands : BaseCommandModule
     {
         private PollTable _pollTable;

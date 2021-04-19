@@ -13,6 +13,7 @@ namespace MarineBot.Commands
 {
     [Group("Actions"), Aliases("act")]
     [Description("Comandos de acciones.")]
+    [RequireGuild]
     internal class ActionCommands : BaseCommandModule
     {
         public ActionCommands(IServiceProvider serviceProvider)

@@ -367,3 +367,4 @@ config.json
 bin/Debug/netcoreapp3.1/config.json
 
 # End of https://www.gitignore.io/api/csharp,visualstudio,visualstudiocode
+/Commands/AdminCommands.cs

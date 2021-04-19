@@ -19,13 +19,11 @@ namespace MarineBot.Commands
     {
         private Config _config;
         private ImgurHelper _imgur;
-        private FurryHelper _furry;
 
         public ImageCommands(IServiceProvider serviceProvider)
         {
             _config = (Config)serviceProvider.GetService(typeof(Config));
             _imgur = new ImgurHelper(_config.imgurClientID);
-            _furry = new FurryHelper(_config._furAffinityAuth.CookieA, _config._furAffinityAuth.CookieB);
         }
 
         [GroupCommand(), Hidden()]
@@ -201,7 +199,7 @@ namespace MarineBot.Commands
             {
                 try
                 {
-                    var ranImg = await LewdHelper.E621GetRandomImage(tag);
+                    var ranImg = await E621Helper.GetRandomImage(tag);
                     var embed = new DiscordEmbedBuilder()
                         .WithColor(0x3d9dd1)
                         .WithFooter($"https://e621.net/posts/{ranImg.Id}")
@@ -219,34 +217,6 @@ namespace MarineBot.Commands
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
                 throw;
             }
-        }
-
-        [Command("furaffinity"), Description("Obtiene una imágen de FurAffinity al azar. Es posible utilizar opciones de búsqueda.")]
-        [Example("images furaffinity", "img furaffinity rating:general type:human", "img furaffinity gender:female type:anime")]
-        [RequireNsfw()]
-        public async Task FuraffinityCommand(CommandContext ctx, [Description("Opciones de busquedad (type, gender, rating)"), RemainingText()] Dictionary<string, string> options = null)
-        {
-            FurrAf_BrowseOptions searchOptions = null;
-            if (options != null && options.Count != 0)
-            {
-                searchOptions = new FurrAf_BrowseOptions(options.ContainsKey("type")    ? options["type"]   : null,
-                                                         options.ContainsKey("gender")  ? options["gender"] : null,
-                                                         options.ContainsKey("rating")  ? options["rating"] : null);
-            }
-            int page = NumbersHelper.GetRandom(1, 100); //hardcoded af
-            var imgList = await _furry.Browse(page, searchOptions);
-            var img = imgList[NumbersHelper.GetRandom(0, imgList.Count)];
-            var imgUrl = await _furry.GetImage(img.ID);
-
-            var embed = new DiscordEmbedBuilder()
-                .WithColor(0x3d9dd1)
-                .WithTitle(img.Title)
-                .WithUrl($"https://www.furaffinity.net/view/{img.ID}/")
-                .WithAuthor(img.Author)
-                .WithFooter($"https://www.furaffinity.net/view/{img.ID}/")
-                .WithImageUrl(imgUrl);
-
-            await ctx.RespondAsync(embed: embed);
         }
     }
 }

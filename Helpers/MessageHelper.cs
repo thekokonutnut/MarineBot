@@ -21,7 +21,7 @@ namespace MarineBot.Helpers
             return await ctx.RespondAsync(embed: embed);
         }
 
-        public static async Task<DiscordMessage> SendErrorEmbed(CommandContext ctx, string message, bool delete = true)
+        public static async Task<DiscordMessage> SendErrorEmbed(CommandContext ctx, string message, bool delete = false)
         {
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0xAA0000)

@@ -11,6 +11,7 @@ namespace MarineBot.Commands
 {
     [Group("Utils"),Aliases("u")]
     [Description("Comandos de utilidad variada.")]
+    [ShortCommandsGroup]
     [RequireGuild]
     internal class UtilsCommands : BaseCommandModule
     {

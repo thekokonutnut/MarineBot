@@ -18,7 +18,10 @@ namespace MarineBot.Helpers
         internal string Prefix = "'";
 
         [JsonProperty("databaseconfig")]
-        internal DatabaseConfig _databaseConfig = new DatabaseConfig();
+        internal DatabaseConfig databaseConfig = new DatabaseConfig();
+
+        [JsonProperty("facesEndpoint")]
+        internal string facesEndpoint = "";
 
         [JsonProperty("imgur_clientid")]
         internal string imgurClientID = "";

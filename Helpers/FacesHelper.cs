@@ -6,7 +6,15 @@ namespace MarineBot.Helpers
 {
     internal static class FacesHelper
     {
-        const string PageUri = "https://thecocoyard.com/doom/";
+        static string PageUri = "";
+
+        static FacesHelper()
+        {
+            var config = Config.LoadFromFile("config.json");
+
+            PageUri = config.facesEndpoint;
+        }
+
         public static string GetIdleFace()
         {
             string[] faces = { "Idle_0.png", "Left_0.png", "Right_0.png" };

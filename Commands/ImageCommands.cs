@@ -15,6 +15,7 @@ namespace MarineBot.Commands
 {
     [Group("Images"), Aliases("img")]
     [Description("Comandos de imágenes online.")]
+    [ShortCommandsGroup]
     internal class ImageCommands : BaseCommandModule
     {
         private Config _config;

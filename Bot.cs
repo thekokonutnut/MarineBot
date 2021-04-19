@@ -20,6 +20,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using DSharpPlus.Interactivity.Extensions;
 using MarineBot.Converters;
+using MarineBot.Attributes;
 
 namespace MarineBot
 {
@@ -69,7 +70,7 @@ namespace MarineBot
 
             _cts            = new CancellationTokenSource();
             _cmdinput       = new CommandsInputController();
-            _dbcontroller   = new DatabaseController(_config._databaseConfig);
+            _dbcontroller   = new DatabaseController(_config.databaseConfig);
 
             if (!_dbcontroller.TestConnection())
             {
@@ -110,6 +111,7 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.UtilsCommands>();
             _cnext.RegisterCommands<Commands.ImageCommands>();
             _cnext.RegisterCommands<Commands.ActionCommands>();
+            _cnext.RegisterCommands<Commands.AdminCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
             _pollthread     = new PollThread(serviceProvider);
@@ -128,10 +130,47 @@ namespace MarineBot
 
         private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
-            _client.Logger.Log(LogLevel.Error, $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
             var ex = e.Exception;
 
-            if (ex is ChecksFailedException)
+            if (ex is CommandNotFoundException)
+            {
+                var ctx = e.Context;
+                var cmds = ctx.CommandsNext;
+
+                // I shouldn't be doing this by hand...
+                string msg = ctx.Message.Content.Replace(ctx.Prefix, "");
+                string msgCommand = msg.Split(" ").First();
+                string msgArgs = string.Join(" ", msg.Split(" ").Skip(1));
+
+                bool found = false;
+                Command lastCmd = null;
+                foreach (var parent in cmds.RegisteredCommands)
+                {
+                    var cmd = parent.Value;
+                    if (cmd == lastCmd || cmd.Name == "help")
+                        continue;
+
+                    if (!cmd.CustomAttributes.Any(att => att is ShortCommandsGroupAttribute))
+                        continue;
+
+                    var subcommands = (cmd as CommandGroup).Children;
+                    var foundCmd = subcommands.FirstOrDefault(s => s.Name == msgCommand);
+
+                    if (foundCmd != null)
+                    {
+                        found = true;
+
+                        var context = cmds.CreateContext(ctx.Message, ctx.Prefix, foundCmd, msgArgs);
+                        _ = cmds.ExecuteCommandAsync(context);
+                        break;
+                    }
+
+                    lastCmd = cmd;
+                }
+
+                if (found) return;
+            }
+            else if (ex is ChecksFailedException)
             {
                 var checks = (ex as ChecksFailedException).FailedChecks;
                 if (checks.Any(c => c is DSharpPlus.CommandsNext.Attributes.RequireNsfwAttribute))
@@ -151,9 +190,13 @@ namespace MarineBot
                     var ctx = e.Context;
                     var cmds = ctx.CommandsNext;
                     var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), e.Command.QualifiedName);
-                    await cmds.ExecuteCommandAsync(context);
+                    _ = cmds.ExecuteCommandAsync(context);
+
+                    return;
                 }
             }
+
+            _client.Logger.Log(LogLevel.Error, $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {ex.GetType()}: {ex.Message ?? "<no message>"}");
         }
         private Task OnClientErrored(DiscordClient sender, ClientErrorEventArgs e)
         {

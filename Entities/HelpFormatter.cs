@@ -61,9 +61,10 @@ namespace MarineBot.Entities
                 this.EmbedBuilder.AddField("Modo de uso", sb.ToString().Trim(), false);
                 this.EmbedBuilder.WithFooter("<> = Requerido [] = Opcional");
             }
-            if (command.CustomAttributes.Any(att => att is ExampleAttribute))
+
+            var exampleAtt = (ExampleAttribute)command.CustomAttributes.FirstOrDefault(att => att is ExampleAttribute);
+            if (exampleAtt != null)
             {
-                ExampleAttribute exampleAtt = (ExampleAttribute)command.CustomAttributes.Where(att => att is ExampleAttribute).FirstOrDefault();
                 var sb = new StringBuilder();
                 foreach (var item in exampleAtt.Example)
                 {

@@ -41,7 +41,6 @@ namespace MarineBot.Database
                     else
                     {
                         Console.WriteLine(e.ToString());
-                        throw;
                     }
                 }
 
@@ -67,7 +66,6 @@ namespace MarineBot.Database
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
-                        throw;
                     }
                 }
             }
@@ -147,7 +145,6 @@ namespace MarineBot.Database
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
-                        throw;
                     }
                 }
             }
@@ -184,7 +181,6 @@ namespace MarineBot.Database
                         catch (Exception e)
                         {
                             Console.WriteLine(e.ToString());
-                            throw;
                         }
                     }
                 }
@@ -212,7 +208,6 @@ namespace MarineBot.Database
                         catch (Exception e)
                         {
                             Console.WriteLine(e.ToString());
-                            throw;
                         }
                     }
                 }

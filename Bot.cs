@@ -168,7 +168,7 @@ namespace MarineBot
                     lastCmd = cmd;
                 }
 
-                if (found) return;
+                //if (found) return;
             }
             else if (ex is ChecksFailedException)
             {
@@ -192,7 +192,7 @@ namespace MarineBot
                     var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), e.Command.QualifiedName);
                     _ = cmds.ExecuteCommandAsync(context);
 
-                    return;
+                    //return;
                 }
             }
 

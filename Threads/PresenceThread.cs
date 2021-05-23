@@ -30,8 +30,7 @@ namespace MarineBot.Threads
 
             while (!_cts.IsCancellationRequested)
             {
-                var ran = NumbersHelper.GetRandom(0, statusList.Length - 1);
-                var currStatus = statusList[ran];
+                var currStatus = QuotesHelper.GetRandomStatus();
 #if DEBUG
                 currStatus = "localhost xd";
 #endif
@@ -39,7 +38,7 @@ namespace MarineBot.Threads
                 var activity = new DiscordActivity($"{currStatus} ({_config.Prefix}help)", ActivityType.Playing);
                 await _client.UpdateStatusAsync(activity);
 
-                await Task.Delay(120000);
+                Thread.Sleep(120000);
             }
         }
     }

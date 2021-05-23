@@ -42,7 +42,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -58,13 +57,12 @@ namespace MarineBot.Commands
                     return;
                 }
 
-                int chosen = NumbersHelper.GetRandom(0, options.Length);
+                int chosen = NumbersHelper.GetRandom(0, options.Length - 1);
                 await MessageHelper.SendSuccessEmbed(ctx, $"`Resultado:` {options[chosen]}");
             }
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -76,13 +74,12 @@ namespace MarineBot.Commands
             try
             {
                 string[] options = _config.dudaAnswers;
-                int chosen = NumbersHelper.GetRandom(0, options.Length);
+                int chosen = NumbersHelper.GetRandom(0, options.Length - 1);
                 await MessageHelper.SendSuccessEmbed(ctx, $"`{duda}:` {options[chosen]}");
             }
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -99,7 +96,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -120,7 +116,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
     }

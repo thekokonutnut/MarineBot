@@ -42,7 +42,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
     }

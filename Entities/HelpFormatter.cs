@@ -23,7 +23,7 @@ namespace MarineBot.Entities
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
                 .WithTitle(":wheelchair::wheelchair::wheelchair: Ayuda")
-                .WithColor(0xff3030)
+                .WithColor(0xf08a5d)
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
             var _config = (Config)ctx.CommandsNext.Services.GetService(typeof(Config));
@@ -111,17 +111,9 @@ namespace MarineBot.Entities
             {
                 System.DateTime buildDate = System.IO.File.GetLastWriteTime(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-                this.EmbedBuilder.WithDescription(@$"Un bot de propósito misceláneo, 
-                                                     probablemente no muy útil. 
-                                                     Creado para uso personal, por mí.
-
-                                                     [Repositorio en GitHub](https://github.com/thekokonutnut/MarineBot)
-                                                     [Current build: {buildDate}]");
-                this.EmbedBuilder.AddField("⠀", @$"Usa {Formatter.InlineCode(_prefix + "help <comando>")} para información
-                                                  de uso del comando.
-                                                  O solo el comando sin argumentos, eso
-                                                  también funciona.");
-                this.EmbedBuilder.Title = "Introducing: Doom Bot";
+                this.EmbedBuilder.WithDescription($"Un bot de propósito misceláneo,\nprobablemente no muy útil.\nCreado para uso personal, por mí.\n\n[Repositorio en GitHub](https://github.com/thekokonutnut/MarineBot)\n[Current build: {buildDate}]\n[actualmente {QuotesHelper.GetRandomStatus()}]");
+                this.EmbedBuilder.AddField("⠀", $"Usa {Formatter.InlineCode(_prefix + "help <comando>")} para información\nde uso del comando.\nO solo el comando sin argumentos, eso\ntambién funciona.");
+                this.EmbedBuilder.Title = "Smuggier everyday";
             }
 
             return new CommandHelpMessage(embed: this.EmbedBuilder.Build());

@@ -63,7 +63,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -92,7 +91,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -124,7 +122,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -154,7 +151,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -186,7 +182,6 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
             }
         }
 
@@ -216,7 +211,22 @@ namespace MarineBot.Commands
             catch (Exception e)
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
-                throw;
+            }
+        }
+
+        [Command("emoji"), Description("Obtiene una emoji al azar. ¿De donde? Nose.")]
+        [Example("images emoji")]
+        public async Task RandomEmojiCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomOnlineEmoji();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
             }
         }
     }

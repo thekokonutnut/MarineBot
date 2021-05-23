@@ -16,12 +16,7 @@ namespace MarineBot.Commands
     [Hidden, RequireBotAdministrator]
     internal class AdminCommands : BaseCommandModule
     {
-        private CancellationTokenSource _cts;
-
-        public AdminCommands(IServiceProvider serviceProvider)
-        {
-            _cts = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
-        }
+        public Bot _botApp { private get; set; }
 
         [GroupCommand(), Hidden()]
         public async Task MainCommand(CommandContext ctx)
@@ -37,7 +32,35 @@ namespace MarineBot.Commands
             try
             {
                 await MessageHelper.SendInfoEmbed(ctx, "Apagando el bot...");
-                _cts.Cancel();
+                _botApp.RequestShutdown();
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("restart"), Description("Reinicia el bot.")]
+        public async Task RestartCommand(CommandContext ctx)
+        {
+            try
+            {
+                await MessageHelper.SendInfoEmbed(ctx, "Reiniciando el bot...");
+                _botApp.RequestRestart();
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("listadmins"), Description("Lista los administradores del bot.")]
+        public async Task ListAdminsCommand(CommandContext ctx)
+        {
+            try
+            {
+                string[] admins = AuthHelper.GetAdministrators();
+                await MessageHelper.SendInfoEmbed(ctx, string.Join("\n", admins));
             }
             catch (Exception e)
             {

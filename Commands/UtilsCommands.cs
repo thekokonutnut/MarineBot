@@ -15,13 +15,6 @@ namespace MarineBot.Commands
     [RequireGuild]
     internal class UtilsCommands : BaseCommandModule
     {
-        private readonly Config _config;
-
-        public UtilsCommands(IServiceProvider serviceProvider)
-        {
-            _config = (Config)serviceProvider.GetService(typeof(Config));
-        }
-
         [GroupCommand(), Hidden()]
         public async Task MainCommand(CommandContext ctx)
         {
@@ -73,9 +66,7 @@ namespace MarineBot.Commands
             if (duda == null) throw new ArgumentException();
             try
             {
-                string[] options = _config.dudaAnswers;
-                int chosen = NumbersHelper.GetRandom(0, options.Length - 1);
-                await MessageHelper.SendSuccessEmbed(ctx, $"`{duda}:` {options[chosen]}");
+                await MessageHelper.SendSuccessEmbed(ctx, $"`{duda}:` {QuotesHelper.GetDudaAnswer()}");
             }
             catch (Exception e)
             {

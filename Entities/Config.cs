@@ -32,6 +32,9 @@ namespace MarineBot.Helpers
         [JsonProperty("status_messages")]
         internal string[] statusMessages = { "Gutting demons", "Cleaning hell", "Freeing the Earth" };
 
+        [JsonProperty("faces_config")]
+        internal FacesConfig facesConfig = new FacesConfig();
+
         [JsonProperty("administrators")]
         internal string[] administratorsList = { "<insert userid>" };
 
@@ -61,5 +64,17 @@ namespace MarineBot.Helpers
         internal string Password = "";
         [JsonProperty("database")]
         internal string Database = "";
+    }
+
+    internal class FacesConfig
+    {
+        [JsonProperty("idle")]
+        internal string[] IdleFaces = { "Idle_0.png" };
+        [JsonProperty("success")]
+        internal string[] SuccessFaces = { "Happy_0.png" };
+        [JsonProperty("warning")]
+        internal string[] WarningFaces = { "Confused_0.png" };
+        [JsonProperty("error")]
+        internal string[] ErrorFaces = { "Sad_0.png" };
     }
 }

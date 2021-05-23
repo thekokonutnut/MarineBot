@@ -76,45 +76,38 @@ namespace MarineBot.Helpers
     internal static class FacesHelper
     {
         static string PageUri = "";
+        static FacesConfig FacesData;
 
         static FacesHelper()
+        {
+            ReloadConfig();
+        }
+        public static void ReloadConfig()
         {
             var config = Config.LoadFromFile("config.json");
 
             PageUri = config.facesEndpoint;
+            FacesData = config.facesConfig;
         }
 
         public static string GetIdleFace()
         {
-            string[] faces = { "Confused_0.png", "Confused_1.png", "Confused_2.png", "Cute_0.png", "Eugh_1.png",
-                                "Happy_4.png", "Smug_0.png", "Relax_0.png", "Smug_3.png", "Smug_2.png", "Smug_6.png",
-                                "Smug_0.png", "Surprise_1.png", "Happy_1.png", "Ok_1.png", "Happy_5.png", "Confused_5.png",
-                                "Muda_0.png", "Angry_2.png", "Ok_0.png", "Blush_0.png"};
-            return PageUri + RandomEntry(faces);
+            return PageUri + RandomEntry(FacesData.IdleFaces);
         }
 
         public static string GetErrorFace()
         {
-            string[] faces = { "Angry_0.png", "Confused_2.png", "Disgusting_0.png", "Disgusting_1.png", "Sad_0.png",
-                                "Sad_1.png", "Sad_2.png", "Sad_3.png", "Scary_0.png", "Cute_0.png", "Confused_3.png",
-                                "Confused_5.png", "Muda_0.png", "Angry_2.png", "Confused_4.png", "Angry_1.png"};
-            return PageUri + RandomEntry(faces);
+            return PageUri + RandomEntry(FacesData.ErrorFaces);
         }
 
         public static string GetSuccessFace()
         {
-            string[] faces = { "Happy_0.png", "Happy_1.png", "Happy_2.png", "Happy_3.png", "Happy_4.png", "Relax_0.png",
-                                "Smug_0.png", "Smug_1.png", "Smug_2.png", "Smug_4.png", "Smug_6.png", "Smug_7.png", "Ok_1.png",
-                                "Happy_5.png", "Happy_6.png", "Ok_0.png", "Blush_0.png" };
-            return PageUri + RandomEntry(faces);
+            return PageUri + RandomEntry(FacesData.SuccessFaces);
         }
 
         public static string GetWarningFace()
         {
-            string[] faces = { "Angry_0.png", "Confused_0.png", "Eugh_0.png", "Scary_0.png", "Surprise_0.png",
-                                "Surprise_1.png", "Smug_5.png", "Smug_3.png", "Smug_2.png", "Cute_0.png",
-                                "Confused_3.png", "Confused_5.png", "Muda_0.png", "Angry_2.png", "Confused_4.png"};
-            return PageUri + RandomEntry(faces);
+            return PageUri + RandomEntry(FacesData.WarningFaces);
         }
 
         public static string GetFace(string face)
@@ -132,17 +125,28 @@ namespace MarineBot.Helpers
     internal static class QuotesHelper
     {
         static string[] statusList;
+        static string[] dudasAnswers;
 
         static QuotesHelper()
+        {
+            ReloadConfig();
+        }
+        public static void ReloadConfig()
         {
             var config = Config.LoadFromFile("config.json");
 
             statusList = config.statusMessages;
+            dudasAnswers = config.dudaAnswers;
         }
 
         public static string GetRandomStatus()
         {
             return statusList[NumbersHelper.GetRandom(0, statusList.Length - 1)];
+        }
+
+        public static string GetDudaAnswer()
+        {
+            return dudasAnswers[NumbersHelper.GetRandom(0, dudasAnswers.Length - 1)];
         }
     }
 }

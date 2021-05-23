@@ -38,6 +38,8 @@ namespace MarineBot
         private ReminderThread          _reminderthread;
         private PollThread              _pollthread;
 
+        public bool HandledExit;
+
         public Bot()
         {
             Console.WriteLine("[System] Initializing bot...");
@@ -45,14 +47,15 @@ namespace MarineBot
             if (!File.Exists("config.json"))
             {
                 new Config().SaveToFile("config.json");
-                Console.WriteLine(@"[System] Config file not found. Creating new one.
-                                    Please fill in the config.json that was generated.
-                                    Press any key to exit..");
+                Console.WriteLine("[System] Config file not found. Creating new one.\nPlease fill in the config.json that was generated.\nPress any key to exit..");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
 
             this._config = Config.LoadFromFile("config.json");
+            FacesHelper.ReloadConfig();
+            AuthHelper.ReloadConfig();
+            QuotesHelper.ReloadConfig();
 
             _client = new DiscordClient(new DiscordConfiguration()
             {
@@ -80,12 +83,13 @@ namespace MarineBot
             }
 
             var serviceProvider = new ServiceCollection()
-                .AddSingleton<InteractivityExtension>   (this._interactivity)
-                .AddSingleton<CancellationTokenSource>  (this._cts)
-                .AddSingleton<DatabaseController>       (this._dbcontroller)
-                .AddSingleton<CommandsInputController>  (this._cmdinput)
-                .AddSingleton<Config>                   (this._config)
-                .AddSingleton<DiscordClient>            (this._client)
+                .AddSingleton(_interactivity)
+                .AddSingleton(_cts)
+                .AddSingleton(_dbcontroller)
+                .AddSingleton(_cmdinput)
+                .AddSingleton(_config)
+                .AddSingleton(_client)
+                .AddSingleton(this)
                 .BuildServiceProvider();
 
             _cnext = _client.UseCommandsNext(new CommandsNextConfiguration()
@@ -168,7 +172,7 @@ namespace MarineBot
                     lastCmd = cmd;
                 }
 
-                //if (found) return;
+                if (found) return;
             }
             else if (ex is ChecksFailedException)
             {
@@ -192,7 +196,7 @@ namespace MarineBot
                     var context = cmds.CreateContext(ctx.Message, ctx.Prefix, cmds.FindCommand("help", out _), e.Command.QualifiedName);
                     _ = cmds.ExecuteCommandAsync(context);
 
-                    //return;
+                    return;
                 }
             }
 
@@ -228,6 +232,17 @@ namespace MarineBot
             await WaitForCancellationAsync();
 
             await _dbcontroller.SaveEverything();
+        }
+
+        public void RequestShutdown()
+        {
+            HandledExit = true;
+            _cts.Cancel();
+        }
+
+        public void RequestRestart()
+        {
+            _cts.Cancel();
         }
 
         private async Task WaitForCancellationAsync()

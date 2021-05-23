@@ -32,7 +32,7 @@ namespace MarineBot.Helpers
 
             JArray searchResult = JArray.Parse(respstring);
 
-            var ranCount = NumbersHelper.GetRandom(1, searchResult.Count);
+            var ranCount = NumbersHelper.GetRandom(1, searchResult.Count - 1);
 
             return (string)searchResult[ranCount][0];
         }

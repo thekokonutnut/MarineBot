@@ -16,11 +16,6 @@ namespace MarineBot.Commands
     [RequireGuild]
     internal class ActionCommands : BaseCommandModule
     {
-        public ActionCommands(IServiceProvider serviceProvider)
-        {
-
-        }
-
         [GroupCommand(), Hidden()]
         public async Task MainCommand(CommandContext ctx)
         {

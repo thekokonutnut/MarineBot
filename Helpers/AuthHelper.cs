@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using MarineBot.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,11 @@ namespace MarineBot.Helpers
         static string[] botAdministrators;
         static AuthHelper()
         {
+            ReloadConfig();
+        }
+        public static void ReloadConfig()
+        {
             var config = Config.LoadFromFile("config.json");
-
             botAdministrators = config.administratorsList;
         }
 
@@ -24,7 +28,7 @@ namespace MarineBot.Helpers
 
             if (app != null)
                 return app.Owners.Any(x => x.Id == ctx.User.Id);
-
+            
             return ctx.User.Id == me.Id;
         }
 
@@ -34,5 +38,7 @@ namespace MarineBot.Helpers
                 return true;
             return false;
         }
+
+        public static string[] GetAdministrators() => botAdministrators;
     }
 }

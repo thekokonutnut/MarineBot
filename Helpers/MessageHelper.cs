@@ -144,6 +144,8 @@ namespace MarineBot.Helpers
             return statusList[NumbersHelper.GetRandom(0, statusList.Length - 1)];
         }
 
+        public static string[] GetStatusList() => statusList;
+
         public static string GetDudaAnswer()
         {
             return dudasAnswers[NumbersHelper.GetRandom(0, dudasAnswers.Length - 1)];

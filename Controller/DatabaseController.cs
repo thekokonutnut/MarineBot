@@ -28,6 +28,7 @@ namespace MarineBot.Controller
             databaseTables = new List<ITable>();
             databaseTables.Add(new ReminderTable(ConnectionString));
             databaseTables.Add(new PollTable(ConnectionString));
+            databaseTables.Add(new ActivityTable(ConnectionString));
         }
 
         public T GetTable<T>()

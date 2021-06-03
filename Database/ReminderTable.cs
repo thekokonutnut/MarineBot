@@ -50,7 +50,7 @@ namespace MarineBot.Database
                 {
                     cmd.Connection = conn;
                     cmd.CommandText =
-                    $@"CREATE TABLE `doombot`.`reminders` (
+                    $@"CREATE TABLE `reminders` (
 	                    `Name` VARCHAR(32) NOT NULL
 	                    ,`Description` VARCHAR(128) NOT NULL
 	                    ,`Time` VARCHAR(5) NOT NULL

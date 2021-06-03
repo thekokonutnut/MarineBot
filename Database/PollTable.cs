@@ -48,7 +48,7 @@ namespace MarineBot.Database
                 {
                     cmd.Connection = conn;
                     cmd.CommandText =
-                    $@"CREATE TABLE `doombot`.`polls` ( 
+                    $@"CREATE TABLE `polls` ( 
 	                    `ID` INT(10) NOT NULL 
 	                    , `Title` VARCHAR(256) NOT NULL 
 	                    , `Options` VARCHAR(512) NOT NULL 

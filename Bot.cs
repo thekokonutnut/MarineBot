@@ -33,6 +33,7 @@ namespace MarineBot
         private CancellationTokenSource _cts;
         private DatabaseController      _dbcontroller;
         private CommandsInputController _cmdinput;
+        private WebappController        _webappControl;
 
         private PresenceThread          _presenceThread;
         private ReminderThread          _reminderthread;
@@ -120,6 +121,7 @@ namespace MarineBot
             _reminderthread = new ReminderThread(serviceProvider);
             _pollthread     = new PollThread(serviceProvider);
             _presenceThread = new PresenceThread(serviceProvider);
+            _webappControl  = new WebappController(serviceProvider);
 
             _client.Ready           += OnReadyAsync;
             _client.GuildAvailable  += OnGuildAvailable;
@@ -219,6 +221,8 @@ namespace MarineBot
             _ = Task.Factory.StartNew(() => _reminderthread.RunAsync());
             _ = Task.Factory.StartNew(() => _pollthread.RunAsync());
             _ = Task.Factory.StartNew(() => _presenceThread.RunAsync());
+
+            _ = Task.Factory.StartNew(() => _webappControl.StartServerAsync());
 
             _client.Logger.Log(LogLevel.Information, "Client is ready to process events.");
             return Task.CompletedTask;

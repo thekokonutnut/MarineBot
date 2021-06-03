@@ -10,6 +10,7 @@ using DSharpPlus;
 using CodingSeb.ExpressionEvaluator;
 using DSharpPlus.Entities;
 using MarineBot.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarineBot.Commands
 {
@@ -23,7 +24,7 @@ namespace MarineBot.Commands
 
         public ImageCommands(IServiceProvider serviceProvider)
         {
-            _config = (Config)serviceProvider.GetService(typeof(Config));
+            _config = serviceProvider.GetService<Config>();
             _imgur = new ImgurHelper(_config.imgurClientID);
         }
 

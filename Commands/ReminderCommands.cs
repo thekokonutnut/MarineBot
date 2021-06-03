@@ -16,6 +16,7 @@ using MarineBot.Threads;
 using MarineBot.Database;
 using MarineBot.Controller;
 using MarineBot.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarineBot.Commands
 {
@@ -25,14 +26,12 @@ namespace MarineBot.Commands
     internal class ReminderCommands : BaseCommandModule
     {
         private ReminderTable _reminderTable;
-        private InteractivityExtension _interactivity;
-        private CommandsInputController _cmdinput;
+        public InteractivityExtension _interactivity { private get; set; }
+        public CommandsInputController _cmdinput { private get; set; }
+
         public ReminderCommands(IServiceProvider serviceProvider)
         {
-            _interactivity = (InteractivityExtension)serviceProvider.GetService(typeof(InteractivityExtension));
-            _cmdinput = (CommandsInputController)serviceProvider.GetService(typeof(CommandsInputController));
-            var controller = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
-            
+            var controller = serviceProvider.GetService<DatabaseController>();
             _reminderTable = controller.GetTable<ReminderTable>();
         }
 

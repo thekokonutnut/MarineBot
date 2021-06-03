@@ -22,6 +22,8 @@ namespace MarineBot.Threads
 
         private string[] _reactions = { ":green_square:", ":red_square:", ":yellow_square:", ":blue_square:", ":purple_square:" };
 
+        bool Running = true;
+
         public PollThread(IServiceProvider serviceProvider)
         {
             var controller  = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
@@ -113,6 +115,11 @@ namespace MarineBot.Threads
 
         public async Task RunAsync()
         {
+            if (Running)
+                return;
+
+            Running = true;
+
             Console.WriteLine("[System] Poll Thread running.");
 
             while (!_cts.IsCancellationRequested)
@@ -128,7 +135,7 @@ namespace MarineBot.Threads
                 foreach (var id in terminated)
                     _pollTable.RemovePoll(id);
 
-                await Task.Delay(1000);
+                Thread.Sleep(1000);
             }
 
         }

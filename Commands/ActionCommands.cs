@@ -37,7 +37,8 @@ namespace MarineBot.Commands
             try
             {
                 var generatedGif = ImageHelper.GenerateGif("gifs/slap/", avatar1, avatar2);
-                await ctx.RespondWithFileAsync("slap.gif", generatedGif);
+                var builder = new DiscordMessageBuilder().WithFile("slap.gif", generatedGif);
+                await ctx.RespondAsync(builder);
 
                 generatedGif.Dispose();
             }

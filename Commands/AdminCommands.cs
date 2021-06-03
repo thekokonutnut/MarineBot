@@ -1,6 +1,11 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using CodingSeb.ExpressionEvaluator;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
 using DSharpPlus.Exceptions;
+using DSharpPlus.Interactivity.Extensions;
 using MarineBot.Attributes;
 using MarineBot.Helpers;
 using System;
@@ -17,6 +22,7 @@ namespace MarineBot.Commands
     internal class AdminCommands : BaseCommandModule
     {
         public Bot _botApp { private get; set; }
+        public DiscordClient _client { private get; set; }
 
         [GroupCommand(), Hidden()]
         public async Task MainCommand(CommandContext ctx)
@@ -66,6 +72,58 @@ namespace MarineBot.Commands
             {
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
             }
+        }
+
+        [Command("eval"), Description("Evalua una expresión.")]
+        public async Task EvalCommand(CommandContext ctx, [Description("Expresión"), RemainingText()] string expresion)
+        {
+            if (expresion == null) throw new ArgumentException();
+            try
+            {
+                ExpressionEvaluator mEvaluator = new ExpressionEvaluator();
+                await MessageHelper.SendSuccessEmbed(ctx, $"`{expresion}:` {mEvaluator.Evaluate(expresion)}");
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("test"), Description("xd.")]
+        public async Task TestComman(CommandContext ctx)
+        {
+            _client.ComponentInteractionCreated += _client_ComponentInteractionCreated;
+
+            var builder = new DiscordMessageBuilder();
+
+            builder
+                .WithContent("Buttons! Coming soon:tm:");
+
+            for (int i = 1; i <= 5; i++)
+            {
+                var pbtns = new DiscordComponent[]
+                {
+                    new DiscordButtonComponent(ButtonStyle.Primary, $"poll{i*5}", $"{i*5}"),
+                    new DiscordButtonComponent(ButtonStyle.Primary, $"poll{i*5+1}", $"{i*5+1}"),
+                    new DiscordButtonComponent(ButtonStyle.Primary, $"poll{i*5+2}", $"{i*5+2}"),
+                    new DiscordButtonComponent(ButtonStyle.Primary, $"poll{i*5+3}", $"{i*5+3}"),
+                    new DiscordButtonComponent(ButtonStyle.Primary, $"poll{i*5+4}", $"{i*5+4}")
+                };
+
+                builder.WithComponents(pbtns);
+            }
+
+            await builder.SendAsync(ctx.Channel);
+        }
+
+        private async Task _client_ComponentInteractionCreated(DiscordClient sender, ComponentInteractionCreateEventArgs e)
+        {
+            var x = e;
+            var se = sender;
+
+            await e.Interaction.CreateResponseAsync(InteractionResponseType.DefferedMessageUpdate);
+
+            Console.WriteLine("interaction");
         }
     }
 }

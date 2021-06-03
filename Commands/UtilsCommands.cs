@@ -74,22 +74,6 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("eval"), Description("Evalua una expresión.")]
-        [Example("utils eval 2+2", "u eval 582+7934-765*21+11*400+3218")]
-        public async Task EvalCommand(CommandContext ctx, [Description("Expresión"), RemainingText()] string expresion)
-        {
-            if (expresion == null) throw new ArgumentException();
-            try
-            {
-                ExpressionEvaluator mEvaluator = new ExpressionEvaluator();
-                await MessageHelper.SendSuccessEmbed(ctx, $"`{expresion}:` {mEvaluator.Evaluate(expresion)}");
-            }
-            catch (Exception e)
-            {
-                await MessageHelper.SendErrorEmbed(ctx, e.Message);
-            }
-        }
-
         [Command("purge"), Description("Elimina la cantidad especificada de mensajes.")]
         [Example("utils purge 10")]
         [RequireUserPermissions(Permissions.ManageMessages), RequireBotPermissions(Permissions.ManageMessages)]    

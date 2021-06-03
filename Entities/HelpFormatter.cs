@@ -97,7 +97,7 @@ namespace MarineBot.Entities
                 }
 
                 this.EmbedBuilder.AddField("Comandos", sb.ToString().Trim(), false);
-                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
+                this.EmbedBuilder.WithFooter("<> = Requerido [] = Opcional");
             } else {
                 this.EmbedBuilder.AddField("Comandos principales sin categorizar", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
             }

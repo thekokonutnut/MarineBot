@@ -15,6 +15,8 @@ namespace MarineBot.Threads
         private CancellationTokenSource _cts;
         private ReminderTable _reminderTable;
         private DiscordClient _client;
+
+        bool Running = false;
         public ReminderThread(IServiceProvider serviceProvider)
         {
             var controller  = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
@@ -33,13 +35,18 @@ namespace MarineBot.Threads
             embed.AddField(reminder.Name, reminder.Description);
 
             var channel = await _client.GetChannelAsync(reminder.Channel);
-            await channel.SendMessageAsync("@everyone", false, embed);
+            await channel.SendMessageAsync("@everyone", embed);
 
             return;
         }
 
         public async Task RunAsync()
         {
+            if (Running)
+                return;
+
+            Running = true;
+
             Console.WriteLine("[System] Reminder Thread running.");
             
             while (!_cts.IsCancellationRequested)
@@ -52,7 +59,7 @@ namespace MarineBot.Threads
                         await TriggerReminder(reminder);
                 }
 
-                await Task.Delay(60000);
+                Thread.Sleep(60000);
             }
         }
     }

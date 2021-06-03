@@ -12,6 +12,7 @@ using MarineBot.Helpers;
 using MarineBot.Controller;
 using System.Linq;
 using MarineBot.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarineBot.Commands
 {
@@ -24,7 +25,7 @@ namespace MarineBot.Commands
 
         public PollCommands(IServiceProvider serviceProvider)
         {
-            var controller = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
+            var controller = serviceProvider.GetService<DatabaseController>();
 
             _pollTable = controller.GetTable<PollTable>();
         }
@@ -61,7 +62,7 @@ namespace MarineBot.Commands
             }
 
             var pollMsg = await MessageHelper.SendInfoEmbed(ctx, "Creando encuesta...");
-            var poll = new Poll(pollMsg.Id, pollMsg.Channel.GuildId, pollMsg.ChannelId, title, time, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), options.ToList());
+            var poll = new Poll(pollMsg.Id, (ulong)pollMsg.Channel.GuildId, pollMsg.ChannelId, title, time, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), options.ToList());
             _pollTable.CreatePoll(poll);
         }
     }

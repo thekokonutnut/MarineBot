@@ -14,7 +14,7 @@ namespace MarineBot.Helpers
 
         public static async Task<string> GetRandomOnlineEmoji()
         {
-            var page = NumbersHelper.GetRandom(1, 28); //why 28? i don't knowxd         
+            var page = NumbersHelper.GetRandom(0, 27); //why 27? i don't knowxd         
 
             var request = new HttpRequestMessage()
             {

@@ -45,8 +45,14 @@ namespace MarineBot.Commands
             if (options == null) throw new ArgumentException();
             try
             {
-                 if (options.Length < 2) {
+                if (options.Length < 2) {
                     await MessageHelper.SendWarningEmbed(ctx, "Preciso mínimo dos opciones.");
+                    return;
+                }
+
+                if (NumbersHelper.GetRandom(0, 100) > 95)
+                {
+                    await MessageHelper.SendWarningEmbed(ctx, "`No me decido...`");
                     return;
                 }
 

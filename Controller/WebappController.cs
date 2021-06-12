@@ -276,9 +276,16 @@ namespace MarineBot.Controller
                 return;
             }
 
-            var activities = await _activityTable.GetActivitiesDB();
+            if (!UserInfo.ContainsKey(authHeader))
+            {
+                session.SendJSONError("User info not retrieved: request /auth/info", 404);
+                return;
+            }
 
-            session.SendJSONObject(new { Error = false, List = activities });
+            var activities = await _activityTable.GetActivitiesDB();
+            var myActivities = activities.Where(g => g.AddedBy == UserInfo[authHeader].ID);
+
+            session.SendJSONObject(new { Error = false, List = myActivities });
         }
 
         private async Task AddActivitySite(HttpSession session, RequestContext rtx)
@@ -303,8 +310,18 @@ namespace MarineBot.Controller
                 return;
             }
 
-            string _activityText = rtx.Parameters.Get("activity");
-            string _type = rtx.Parameters.Get("type");
+            string contentType = rtx.Headers.Get("Content-Type");
+
+            if (contentType != "application/x-www-form-urlencoded")
+            {
+                session.SendJSONError("Invalid content type.", 400);
+                return;
+            }
+
+            var bodyParams = HttpUtility.ParseQueryString(rtx.Request.Body);
+
+            string _activityText = bodyParams.Get("activity");
+            string _type = bodyParams.Get("type");
 
             if (_activityText == null || _type == null)
             {
@@ -321,6 +338,15 @@ namespace MarineBot.Controller
             if (activityType < 0 || activityType > 5)
             {
                 session.SendJSONError("Invalid activity type.", 400);
+                return;
+            }
+
+            var activities = _activityTable.GetEntries();
+            var duplicated = activities.Any(g => g.Activity.Name == _activityText && (int)g.Activity.ActivityType == activityType);
+
+            if (duplicated)
+            {
+                session.SendJSONError("Entry already exists.", 403);
                 return;
             }
 

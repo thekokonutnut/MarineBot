@@ -62,7 +62,7 @@ namespace MarineBot.Threads
                 var newStatus = statusList[index];
                 await ChangeStatus(newStatus);
 
-                var delay = NumbersHelper.GetRandom(10, 20);
+                var delay = NumbersHelper.GetRandom(30, 40);
                 Thread.Sleep(delay * 1000);
             }
 

@@ -13,7 +13,7 @@ namespace MarineBot.Entities
 {
     class RequestContext
     {
-        public HttpRequest Request;
+        public HttpRequest Request { get; init; }
         public string ServerName;
         public string Path;
         public NameValueCollection Parameters;

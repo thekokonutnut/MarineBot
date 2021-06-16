@@ -230,5 +230,21 @@ namespace MarineBot.Commands
                 await MessageHelper.SendWarningEmbed(ctx, e.Message);
             }
         }
+
+        [Command("discord"), Description("Obtiene una imágen de Discord al azar. ¿De donde? Nose.")]
+        [Example("images discord")]
+        public async Task RandomImageCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomOnlineImage();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
+            }
+        }
     }
 }

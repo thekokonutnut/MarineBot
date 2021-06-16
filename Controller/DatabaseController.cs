@@ -60,7 +60,6 @@ namespace MarineBot.Controller
             Console.WriteLine("[System] Loading data from database.");
             foreach (var table in databaseTables)
             {
-                await table.CreateTableIfNull();
                 await table.LoadTable();
             }
         }

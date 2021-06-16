@@ -129,15 +129,15 @@ namespace MarineBot.Helpers
     internal class OAuth2UserInfo
     {
         [JsonProperty("id")]
-        public ulong ID;
+        public ulong ID = 0;
 
         [JsonProperty("username")]
-        public string Username;
+        public string Username = "";
 
         [JsonProperty("avatar")]
-        public string AvatarHash;
+        public string AvatarHash = "";
 
         [JsonProperty("discriminator")]
-        public string Discriminator;
+        public string Discriminator = "";
     }
 }

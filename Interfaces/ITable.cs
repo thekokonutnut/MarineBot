@@ -7,7 +7,7 @@ namespace MarineBot.Interfaces
 {
     interface ITable
     {
-        public Task CreateTableIfNull();
+        public string TableName();
         public Task LoadTable();
         public Task SaveChanges();
     }

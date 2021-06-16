@@ -34,7 +34,12 @@ namespace MarineBot.Helpers
 
         public static bool BotAdministrator(DiscordUser user)
         {
-            if (botAdministrators.Contains(user.Id.ToString()))
+            return BotAdministrator(user.Id.ToString());
+        }
+
+        public static bool BotAdministrator(string id)
+        {
+            if (botAdministrators.Contains(id))
                 return true;
             return false;
         }

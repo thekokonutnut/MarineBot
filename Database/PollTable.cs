@@ -19,57 +19,8 @@ namespace MarineBot.Database
             _connectionString = ConnectionString;
         }
 
-        public async Task CreateTableIfNull()
-        {
-            using (var conn = new MySqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
+        public string TableName() => "polls";
 
-                try
-                {
-                    using (var cmd = new MySqlCommand("SELECT * FROM polls", conn))
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        Console.WriteLine("[Database] Table Polls exists.");
-                        return;
-                    }
-                }
-                catch (MySqlException e)
-                {
-                    if (e.Number == 1146)
-                        Console.WriteLine("[Database] Table Polls doesn't exist. Creating it.");
-                    else
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-
-                using (var cmd = new MySqlCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText =
-                    $@"CREATE TABLE `polls` ( 
-	                    `ID` INT(10) NOT NULL 
-	                    , `Title` VARCHAR(256) NOT NULL 
-	                    , `Options` VARCHAR(512) NOT NULL 
-	                    , `Time` INT(10) NOT NULL 
-                        , `StartTime` BIGINT(12) NOT NULL 
-	                    , `MessageID` BIGINT(12) NOT NULL 
-	                    , `Guild` BIGINT(12) NOT NULL 
-	                    , `Channel` BIGINT(12) NOT NULL 
-	                    , PRIMARY KEY (`ID`)
-                    ) ENGINE = InnoDB;";
-                    try
-                    {
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-            }
-        }
         public async Task LoadTable()
         {
             _polls = await GetPollsDB();

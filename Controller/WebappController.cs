@@ -88,11 +88,11 @@ namespace MarineBot.Controller
 
             UserInfo = new Dictionary<string, OAuth2UserInfo>();
 
-            SiteHandler.RegisterSite(TestSite, "/test");
             SiteHandler.RegisterSite(FindActivitySite, "/activity/id");
             SiteHandler.RegisterSite(ListActivitiesSite, "/activity/list");
             SiteHandler.RegisterSite(AddActivitySite, "/activity/add");
             SiteHandler.RegisterSite(DeleteActivitySite, "/activity/delete");
+            SiteHandler.RegisterSite(EditActivitySite, "/activity/edit");
             SiteHandler.RegisterSite(AuthExpiredSite, "/auth/expire");
             SiteHandler.RegisterSite(AuthInfoSite, "/auth/info");
             SiteHandler.RegisterSite(AuthSite, "/auth");
@@ -283,7 +283,12 @@ namespace MarineBot.Controller
             }
 
             var activities = await _activityTable.GetActivitiesDB();
-            var myActivities = activities.Where(g => g.AddedBy == UserInfo[authHeader].ID);
+            IEnumerable<ActivityEntry> myActivities; 
+            
+            if (AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
+                myActivities = activities;
+            else
+                myActivities = activities.Where(g => g.AddedBy == UserInfo[authHeader].ID);
 
             session.SendJSONObject(new { Error = false, List = myActivities });
         }
@@ -366,6 +371,106 @@ namespace MarineBot.Controller
             session.SendJSONObject(new { Error = false, ID = id });
         }
 
+        private async Task EditActivitySite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            if (!AuthSessions.ContainsKey(authHeader))
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            string requestId = rtx.Parameters.Get("id");
+            if (requestId == null)
+            {
+                session.SendJSONError("Missing parameter id.", 400);
+                return;
+            }
+
+            int id = -1;
+            if (!int.TryParse(requestId, out id))
+            {
+                session.SendJSONError("Invalid ID.", 400);
+                return;
+            }
+
+            if (!UserInfo.ContainsKey(authHeader))
+            {
+                session.SendJSONError("User info not retrieved: request /auth/info", 404);
+                return;
+            }
+
+            var bodyParams = HttpUtility.ParseQueryString(rtx.Request.Body);
+
+            var activities = await _activityTable.GetActivitiesDB();
+            var found = activities.FirstOrDefault(g => g.ID == id);
+
+            if (found == null)
+            {
+                session.SendJSONError("Entry not found.", 404);
+                return;
+            }
+
+            if (!AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
+                if (found.AddedBy != UserInfo[authHeader].ID)
+                {
+                    session.SendJSONError("Forbidden.", 403);
+                    return;
+                }
+
+            string contentType = rtx.Headers.Get("Content-Type");
+
+            if (contentType != "application/x-www-form-urlencoded")
+            {
+                session.SendJSONError("Invalid content type.", 400);
+                return;
+            }
+
+            string _activityText = bodyParams.Get("activity");
+            string _type = bodyParams.Get("type");
+
+            if (_activityText == null || _type == null)
+            {
+                session.SendJSONError("Missing parameters: activity, type", 400);
+                return;
+            }
+
+            int activityType = -1;
+            if (!int.TryParse(_type, out activityType))
+            {
+                session.SendJSONError("Invalid activity type.", 400);
+                return;
+            }
+            if (activityType < 0 || activityType > 5)
+            {
+                session.SendJSONError("Invalid activity type.", 400);
+                return;
+            }
+
+            var entry = new ActivityEntry()
+            {
+                ID = id,
+                AddedBy = UserInfo[authHeader].ID,
+                Activity = new DiscordActivity()
+                {
+                    ActivityType = (ActivityType)activityType,
+                    Name = _activityText
+                }
+            };
+
+            _activityTable.UpdateEntry(id, entry);
+            await _activityTable.SaveChanges();
+
+            session.SendJSONObject(new { Error = false, ID = id });
+        }
+
         private async Task DeleteActivitySite(HttpSession session, RequestContext rtx)
         {
             string authHeader = rtx.Headers.Get("Authentication");
@@ -411,6 +516,7 @@ namespace MarineBot.Controller
                 return;
             }
 
+            if (!AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
             if (found.AddedBy != UserInfo[authHeader].ID)
             {
                 session.SendJSONError("Forbidden.", 403);
@@ -421,40 +527,6 @@ namespace MarineBot.Controller
             await _activityTable.SaveChanges();
 
             session.SendJSONObject(new { Error = false, ID = id });
-        }
-
-        private async Task TestSite(HttpSession session, RequestContext rtx)
-        {
-            string channel = rtx.Parameters.Get("channel");
-
-            if (channel == null)
-            {
-                session.SendJSONError("Missing parameter: channel", 400);
-                return;
-            }
-
-            ulong id;
-
-            if (!ulong.TryParse(channel, out id))
-            {
-                session.SendJSONError("Invalid channel ID.", 400);
-                return;
-            }
-
-            DiscordChannel channelObj;
-
-            try
-            {
-                channelObj = await _client.GetChannelAsync(id);
-            }
-            catch (Exception)
-            {
-                session.SendJSONError("Guild not found.", 404);
-                return;
-            }
-
-            await channelObj.SendMessageAsync("hola xd");
-            session.SendJSONObject(new { Error = false });
         }
     }
 }

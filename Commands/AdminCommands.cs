@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace MarineBot.Commands
 {
@@ -65,7 +66,7 @@ namespace MarineBot.Commands
         {
             try
             {
-                string[] admins = AuthHelper.GetAdministrators();
+                var admins = AuthHelper.GetAdministrators().ToList().Select(e => $"<@{e}>");
                 await MessageHelper.SendInfoEmbed(ctx, string.Join("\n", admins));
             }
             catch (Exception e)

@@ -21,54 +21,8 @@ namespace MarineBot.Database
             _connectionString = ConnectionString;
         }
 
-        public async Task CreateTableIfNull()
-        {
-            using (var conn = new MySqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
+        public string TableName() => "reminders";
 
-                try
-                {
-                    using (var cmd = new MySqlCommand("SELECT * FROM reminders", conn))
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        Console.WriteLine("[Database] Table Reminder exists.");
-                        return;
-                    }
-                }
-                catch (MySqlException e)
-                {
-                    if (e.Number == 1146)
-                        Console.WriteLine("[Database] Table Reminder doesn't exist. Creating it.");
-                    else
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-
-                using (var cmd = new MySqlCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText =
-                    $@"CREATE TABLE `reminders` (
-	                    `Name` VARCHAR(32) NOT NULL
-	                    ,`Description` VARCHAR(128) NOT NULL
-	                    ,`Time` VARCHAR(5) NOT NULL
-                        ,`Guild` BIGINT (12) UNSIGNED NOT NULL
-	                    ,`Channel` BIGINT (12) UNSIGNED NOT NULL
-	                    ,PRIMARY KEY (`Name`)
-                    ) ENGINE = InnoDB;";
-                    try
-                    {
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-            }
-        }
         public async Task LoadTable()
         {
             _reminders = await GetRemindersDB();

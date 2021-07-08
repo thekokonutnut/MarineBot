@@ -52,7 +52,7 @@ namespace MarineBot.Helpers
                         dynamic json = JsonConvert.DeserializeObject(text);
                         throw new Exception($"Info request returned: {json["error_description"]}");
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         throw new Exception($"Info request returned {response.StatusCode}");
                     }
@@ -92,14 +92,14 @@ namespace MarineBot.Helpers
                         dynamic json = JsonConvert.DeserializeObject(text);
                         throw new Exception($"Token request returned: {json["error_description"]}");
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         throw new Exception($"Token request returned {response.StatusCode}");
                     }
                 }
 
                 var oauthresponse = JsonConvert.DeserializeObject<OAuth2Response>(text);
-                oauthresponse.Requested = DateTime.Now;
+                oauthresponse.Requested = DateTimeOffset.Now;
 
                 return oauthresponse;
             }
@@ -123,7 +123,7 @@ namespace MarineBot.Helpers
         [JsonProperty("token_type")]
         public string TokenType = "";
 
-        public DateTime Requested;
+        public DateTimeOffset Requested;
     }
 
     internal class OAuth2UserInfo

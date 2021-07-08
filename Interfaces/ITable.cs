@@ -9,6 +9,6 @@ namespace MarineBot.Interfaces
     {
         public string TableName();
         public Task LoadTable();
-        public Task SaveChanges();
+        //public Task SaveChanges();
     }
 }

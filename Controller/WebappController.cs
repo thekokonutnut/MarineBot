@@ -69,9 +69,9 @@ namespace MarineBot.Controller
         private DatabaseController _dbControl;
 
         private ActivityTable _activityTable;
+        private UserTable _userTable;
 
-        private Dictionary<string, OAuth2Response> AuthSessions;
-        private Dictionary<string, OAuth2UserInfo> UserInfo;
+        private List<AuthUser> AuthUsers;
 
         public WebappServer(IPAddress address, int port, string servername, IServiceProvider serviceProvider) : base(address, port)
         {
@@ -83,19 +83,16 @@ namespace MarineBot.Controller
             _dbControl = serviceProvider.GetService<DatabaseController>();
 
             _activityTable = _dbControl.GetTable<ActivityTable>();
+            _userTable = _dbControl.GetTable<UserTable>();
 
-            AuthSessions = new Dictionary<string, OAuth2Response>();
+            AuthUsers = new List<AuthUser>();
 
-            UserInfo = new Dictionary<string, OAuth2UserInfo>();
-
-            SiteHandler.RegisterSite(FindActivitySite, "/activity/id");
-            SiteHandler.RegisterSite(ListActivitiesSite, "/activity/list");
-            SiteHandler.RegisterSite(AddActivitySite, "/activity/add");
-            SiteHandler.RegisterSite(DeleteActivitySite, "/activity/delete");
-            SiteHandler.RegisterSite(EditActivitySite, "/activity/edit");
-            SiteHandler.RegisterSite(AuthExpiredSite, "/auth/expire");
-            SiteHandler.RegisterSite(AuthInfoSite, "/auth/info");
-            SiteHandler.RegisterSite(AuthSite, "/auth");
+            SiteHandler.RegisterSite(FindActivitySite,      "/activity/id");
+            SiteHandler.RegisterSite(ListActivitiesSite,    "/activity/list");
+            SiteHandler.RegisterSite(AddActivitySite,       "/activity/add");
+            SiteHandler.RegisterSite(DeleteActivitySite,    "/activity/delete");
+            SiteHandler.RegisterSite(EditActivitySite,      "/activity/edit");
+            SiteHandler.RegisterSite(AuthSite,              "/auth");
         }
 
         protected override TcpSession CreateSession() 
@@ -130,69 +127,8 @@ namespace MarineBot.Controller
             }
         }
 
-        private Task AuthExpiredSite(HttpSession session, RequestContext rtx)
+        private async Task AuthRegister(HttpSession session, string oauthCode)
         {
-            string authHeader = rtx.Headers.Get("Authentication");
-
-            if (authHeader == null)
-            {
-                session.SendJSONError("Missing authentication header.", 401);
-                return Task.CompletedTask;
-            }
-
-            if (!AuthSessions.ContainsKey(authHeader))
-            {
-                session.SendJSONError("Forbidden.", 403);
-                return Task.CompletedTask;
-            }
-
-            var sessObj = AuthSessions[authHeader];
-
-            var expired = DateTime.Now > sessObj.Requested.AddSeconds(sessObj.Lifespan);
-
-            session.SendJSONObject(new { Error = false, Requested = sessObj.Requested.ToString(), sessObj.Lifespan, Expired = expired });
-            return Task.CompletedTask;
-        }
-
-        private async Task AuthInfoSite(HttpSession session, RequestContext rtx)
-        {
-            string authHeader = rtx.Headers.Get("Authentication");
-
-            if (authHeader == null)
-            {
-                session.SendJSONError("Missing authentication header.", 401);
-                return;
-            }
-
-            if (!AuthSessions.ContainsKey(authHeader))
-            {
-                session.SendJSONError("Forbidden.", 403);
-                return;
-            }
-
-            var sessObj = AuthSessions[authHeader];
-
-            OAuth2UserInfo response;
-
-            try
-            {
-                response = await OAuth2Helper.RequestUserInfo(sessObj.Token);
-            }
-            catch (Exception e)
-            {
-                session.SendJSONError(e.Message);
-                return;
-            }
-
-            UserInfo[authHeader] = response;
-            session.SendJSONObject(new { Error = false, User = response });
-            return;
-        }
-
-        private async Task AuthSite(HttpSession session, RequestContext rtx)
-        {
-            string oauthCode = rtx.Parameters.Get("code");
-
             if (oauthCode == null)
             {
                 session.SendJSONError("Missing parameter: code", 400);
@@ -211,11 +147,80 @@ namespace MarineBot.Controller
                 return;
             }
 
-            var hash = CryptoHelper.CreateMD5(response.Token);
+            var token = new AuthToken(response);
+            OAuth2UserInfo info_response;
 
-            AuthSessions[hash] = response;
+            try
+            {
+                info_response = await OAuth2Helper.RequestUserInfo(token.AccessToken);
+            }
+            catch (Exception e)
+            {
+                session.SendJSONError(e.Message);
+                return;
+            }
 
-            session.SendJSONObject(new { Error = false, Session = hash, Token = response.Token });
+            var user = new AuthUser(info_response);
+
+            var usersDB = await _userTable.GetUsersDB();
+            var existingUser = usersDB.FirstOrDefault(u => u.DiscordID == user.DiscordID);
+
+            AuthUserInfo info;
+
+            if (existingUser is not null)
+            {
+                AuthUsers.Add(existingUser);
+
+                info = new AuthUserInfo(existingUser);
+                session.SendJSONObject(new { Error = false, Message = "Already registered.", Session = existingUser.Token.SessionCode, ID = existingUser.ID, Info = info });
+                return;
+            }
+
+            var token_id = await _userTable.AddTokenDB(token);
+            var user_id = await _userTable.AddUserDB(user, token_id);
+
+            usersDB = await _userTable.GetUsersDB();
+            var userDB = usersDB.FirstOrDefault(user => user.ID == user_id);
+
+            AuthUsers.Add(userDB);
+
+            info = new AuthUserInfo(existingUser);
+            session.SendJSONObject(new { Error = false, Message = "Succesfully registered.", Session = token.SessionCode, UserID = user_id, Info = info });
+        }
+
+        private async Task AuthSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+            string oauthCode = rtx.Parameters.Get("code");
+
+            if (authHeader == null)
+            {
+                await AuthRegister(session, oauthCode);
+                return;
+            }
+
+            var users = await _userTable.GetUsersDB();
+            var existingUser = users.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (existingUser is null)
+            {
+                await AuthRegister(session, oauthCode);
+                return;
+            }
+
+            var userInfo = new AuthUserInfo(existingUser);
+
+            if (AuthUsers.Any(a => a.DiscordID == existingUser.DiscordID))
+            {
+                session.SendJSONObject(new { Error = false, Message = "Already logged in.", Session = existingUser.Token.SessionCode, ID = existingUser.ID, Info = userInfo });
+                return;
+            }
+
+            // TODO: check expired token
+
+            AuthUsers.Add(existingUser);
+
+            session.SendJSONObject(new { Error = false, Message = "Succesfully authed.", Session = existingUser.Token.SessionCode, ID = existingUser.ID, Info = userInfo });
         }
 
         private async Task FindActivitySite(HttpSession session, RequestContext rtx)
@@ -228,7 +233,9 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthSessions.ContainsKey(authHeader))
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
             {
                 session.SendJSONError("Forbidden.", 403);
                 return;
@@ -270,25 +277,28 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthSessions.ContainsKey(authHeader))
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
             {
                 session.SendJSONError("Forbidden.", 403);
-                return;
-            }
-
-            if (!UserInfo.ContainsKey(authHeader))
-            {
-                session.SendJSONError("User info not retrieved: request /auth/info", 404);
                 return;
             }
 
             var activities = await _activityTable.GetActivitiesDB();
             IEnumerable<ActivityEntry> myActivities; 
             
-            if (AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
+            if (AuthHelper.BotAdministrator(currentUser.DiscordID.ToString()))
                 myActivities = activities;
             else
-                myActivities = activities.Where(g => g.AddedBy == UserInfo[authHeader].ID);
+                myActivities = activities.Where(g => g.UserID == currentUser.ID);
+
+            var usersDB = await _userTable.GetUsersDB();
+
+            foreach (var act in myActivities)
+            {
+                act.AddedBy = usersDB.FirstOrDefault(user => user.ID == act.UserID).DiscordID;
+            }
 
             session.SendJSONObject(new { Error = false, List = myActivities });
         }
@@ -303,15 +313,11 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthSessions.ContainsKey(authHeader))
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
             {
                 session.SendJSONError("Forbidden.", 403);
-                return;
-            }
-
-            if (!UserInfo.ContainsKey(authHeader))
-            {
-                session.SendJSONError("User info not retrieved: request /auth/info", 404);
                 return;
             }
 
@@ -347,7 +353,7 @@ namespace MarineBot.Controller
             }
 
             var activities = _activityTable.GetEntries();
-            var duplicated = activities.Any(g => g.Activity.Name == _activityText && (int)g.Activity.ActivityType == activityType);
+            var duplicated = activities.Any(g => g.Status == _activityText && (int)g.Type == activityType);
 
             if (duplicated)
             {
@@ -357,16 +363,13 @@ namespace MarineBot.Controller
 
             var entry = new ActivityEntry()
             {
-                AddedBy = UserInfo[authHeader].ID,
-                Activity = new DiscordActivity()
-                {
-                    ActivityType = (ActivityType)activityType,
-                    Name = _activityText
-                }
+                UserID = currentUser.ID,
+                Type = (ActivityType)activityType,
+                Status = _activityText
             };
 
-            int id = _activityTable.CreateEntry(entry);
-            await _activityTable.SaveChanges();
+            int id = await _activityTable.AddActivity(entry);
+            await _activityTable.LoadTable();
 
             session.SendJSONObject(new { Error = false, ID = id });
         }
@@ -381,7 +384,9 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthSessions.ContainsKey(authHeader))
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
             {
                 session.SendJSONError("Forbidden.", 403);
                 return;
@@ -401,12 +406,6 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!UserInfo.ContainsKey(authHeader))
-            {
-                session.SendJSONError("User info not retrieved: request /auth/info", 404);
-                return;
-            }
-
             var bodyParams = HttpUtility.ParseQueryString(rtx.Request.Body);
 
             var activities = await _activityTable.GetActivitiesDB();
@@ -418,8 +417,8 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
-                if (found.AddedBy != UserInfo[authHeader].ID)
+            if (!AuthHelper.BotAdministrator(currentUser.DiscordID.ToString()))
+                if (found.UserID != currentUser.ID)
                 {
                     session.SendJSONError("Forbidden.", 403);
                     return;
@@ -457,16 +456,13 @@ namespace MarineBot.Controller
             var entry = new ActivityEntry()
             {
                 ID = id,
-                AddedBy = UserInfo[authHeader].ID,
-                Activity = new DiscordActivity()
-                {
-                    ActivityType = (ActivityType)activityType,
-                    Name = _activityText
-                }
+                UserID = currentUser.ID,
+                Type = (ActivityType)activityType,
+                Status = _activityText
             };
 
-            _activityTable.UpdateEntry(id, entry);
-            await _activityTable.SaveChanges();
+            await _activityTable.UpdateActivity(id, entry);
+            await _activityTable.LoadTable();
 
             session.SendJSONObject(new { Error = false, ID = id });
         }
@@ -481,7 +477,9 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthSessions.ContainsKey(authHeader))
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
             {
                 session.SendJSONError("Forbidden.", 403);
                 return;
@@ -501,12 +499,6 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!UserInfo.ContainsKey(authHeader))
-            {
-                session.SendJSONError("User info not retrieved: request /auth/info", 404);
-                return;
-            }
-
             var activities = await _activityTable.GetActivitiesDB();
             var found = activities.FirstOrDefault(g => g.ID == id);
 
@@ -516,15 +508,15 @@ namespace MarineBot.Controller
                 return;
             }
 
-            if (!AuthHelper.BotAdministrator(UserInfo[authHeader].ID.ToString()))
-            if (found.AddedBy != UserInfo[authHeader].ID)
+            if (!AuthHelper.BotAdministrator(currentUser.DiscordID.ToString()))
+            if (found.UserID != currentUser.ID)
             {
                 session.SendJSONError("Forbidden.", 403);
                 return;
             }
 
-            _activityTable.RemoveEntry(id);
-            await _activityTable.SaveChanges();
+            await _activityTable.RemoveActivity(id);
+            await _activityTable.LoadTable();
 
             session.SendJSONObject(new { Error = false, ID = id });
         }

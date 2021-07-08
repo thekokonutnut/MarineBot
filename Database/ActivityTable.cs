@@ -12,16 +12,13 @@ namespace MarineBot.Database
 {
     internal class ActivityTable : ITable
     {
-        private string _connectionString;
         private List<ActivityEntry> _activities;
 
-        private HashSet<int> updatedEntries;
+        private DBGateway database;
 
         public ActivityTable(string ConnectionString)
         {
-            _connectionString = ConnectionString;
-
-            updatedEntries = new HashSet<int>();
+            database = new DBGateway(ConnectionString);
         }
 
         public string TableName() => "activities";
@@ -31,92 +28,32 @@ namespace MarineBot.Database
             await GetActivitiesDB(true);
         }
 
-        public async Task SaveChanges()
-        {
-            var dbActs = await GetActivitiesDB();
-
-            // add entries that are in the local list but not in the database
-
-            var localChangesAdditions = _activities.Where(p => !dbActs.Any(l => p.ID == l.ID)).ToList();
-            await AddActivitiesDB(localChangesAdditions);
-
-            // remove entries that are in the database but not in the local list
-
-            var localChangesDeletions = dbActs.Where(p => !_activities.Any(l => p.ID == l.ID)).Select(e => e.ID).ToList();
-            await RemoveActivitiesDB(localChangesDeletions);
-
-            //update edited entries
-
-            await UpdateActivitiesDB(updatedEntries);
-            updatedEntries.Clear();
-        }
-
-        private int GetNextID()
-        {
-            return _activities.Count == 0 ? 0 : _activities.Max(p => p.ID) + 1;
-        }
-        public bool EntryExists(int id)
-        {
-            return _activities.Any(p => p.ID == id);
-        }
-        public List<ActivityEntry> GetEntries()
+        public IEnumerable<ActivityEntry> GetEntries()
         {
             return _activities;
         }
-        public int CreateEntry(ActivityEntry entry)
-        {
-            entry.ID = GetNextID();
-            _activities.Add(entry);
 
-            return entry.ID;
-        }
-        public bool RemoveEntry(int id)
-        {
-            if (!EntryExists(id))
-                return false;
-            int index = _activities.FindIndex(p => p.ID == id);
-            _activities.RemoveAt(index);
-            return true;
-        }
-        public bool UpdateEntry(int id, ActivityEntry newEntry)
-        {
-            if (!EntryExists(id))
-                return false;
-            int index = _activities.FindIndex(p => p.ID == id);
-            _activities[index] = newEntry;
-
-            updatedEntries.Add(id);
-
-            return true;
-        }
-
-        public async Task<List<ActivityEntry>> GetActivitiesDB(bool updateLocal = false)
+        public async Task<IEnumerable<ActivityEntry>> GetActivitiesDB(bool updateLocal = false)
         {
             var activitiesList = new List<ActivityEntry>();
-            using (var conn = new MySqlConnection(_connectionString))
+
+            var query = "SELECT * FROM activities";
+            var result = await database.ExecuteReader(query);
+            var rows = result.Rows;
+
+            foreach (var row in rows)
             {
-                await conn.OpenAsync();
+                var columns = row.GetColumns();
 
-                using (var cmd = new MySqlCommand("SELECT * FROM activities", conn))
+                var entry = new ActivityEntry()
                 {
-                    try
-                    {
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                var activity = new DiscordActivity(reader["status"].ToString(), (ActivityType)Convert.ToInt32(reader["type"]));
-                                var entry = new ActivityEntry(Convert.ToInt32(reader["activity_id"]), Convert.ToUInt64(reader["user_id"]), activity);
+                    ID = Convert.ToInt32(columns["activity_id"]),
+                    UserID = Convert.ToInt32(columns["user_id"]),
+                    Type = (ActivityType)Convert.ToInt32(columns["type"]),
+                    Status = columns["status"].ToString()
+                };
 
-                                activitiesList.Add(entry);
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
+                activitiesList.Add(entry);
             }
 
             if (updateLocal)
@@ -125,124 +62,46 @@ namespace MarineBot.Database
             return activitiesList;
         }
 
+        public async Task<int> AddActivity(ActivityEntry activity)
+        {
+            var query = "INSERT INTO `activities` (`user_id`, `type`, `status`) " +
+                        "VALUES                   (@P0, @P1, @P2);";
+
+            var result = await database.ExecuteNonQuery(query,
+                activity.UserID, activity.Type, activity.Status);
+
+            return (int)result.Command.LastInsertedId;
+        }
+
         public async Task AddActivitiesDB(IEnumerable<ActivityEntry> activities)
         {
-            using (var conn = new MySqlConnection(_connectionString))
+            foreach (var activity in activities)
             {
-                await conn.OpenAsync();
-
-                foreach (var activity in activities)
-                {
-                    using (var cmd = new MySqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandText = "INSERT INTO `activities` (`activity_id`, `user_id`, `type`, `status`) " +
-                                          "VALUES                   (@ID , @User , @Type , @Text);";
-
-                        cmd.Parameters.AddWithValue("ID", activity.ID);
-                        cmd.Parameters.AddWithValue("User", activity.AddedBy);
-                        cmd.Parameters.AddWithValue("Type", activity.Activity.ActivityType);
-                        cmd.Parameters.AddWithValue("Text", activity.Activity.Name);
-
-                        try
-                        {
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                    }
-                }
+                await AddActivity(activity);
             }
         }
 
         public async Task RemoveActivity(int id)
         {
-            using (var conn = new MySqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
-
-                using (var cmd = new MySqlCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText = "DELETE FROM `activities` WHERE `activity_id` = @ID";
-                    cmd.Parameters.AddWithValue("ID", id);
-
-                    try
-                    {
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                }
-            }
+            var query = "DELETE FROM `activities` WHERE `activity_id` = @P0";
+            await database.ExecuteNonQuery(query, id);
         }
 
         public async Task RemoveActivitiesDB(IEnumerable<int> ids)
         {
-            using (var conn = new MySqlConnection(_connectionString))
+            foreach (var id in ids)
             {
-                await conn.OpenAsync();
-
-                foreach (var id in ids)
-                {
-                    using (var cmd = new MySqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandText = "DELETE FROM `activities` WHERE `activity_id` = @ID";
-                        cmd.Parameters.AddWithValue("ID", id);
-
-                        try
-                        {
-                            await cmd.ExecuteNonQueryAsync();
-
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                    }
-                }
+                await RemoveActivity(id);
             }
         }
 
-        public async Task UpdateActivitiesDB(IEnumerable<int> ids)
+        public async Task UpdateActivity(int id, ActivityEntry newEntry)
         {
-            using (var conn = new MySqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
+            var query = "UPDATE `activities` SET `type` = @P0, `status` = @P1 " +
+                        "WHERE  `activity_id` = @P2;";
 
-                foreach (var id in ids)
-                {
-                    if (!EntryExists(id))
-                        continue;
-                    int index = _activities.FindIndex(p => p.ID == id);
-                    var activity = _activities[index];
-
-                    using (var cmd = new MySqlCommand())
-                    {
-                        cmd.Connection = conn;
-                        cmd.CommandText = "UPDATE `activities` SET `type` = @Type, `status` = @Text " +
-                                          "WHERE  `activity_id` = @ID;";
-
-                        cmd.Parameters.AddWithValue("ID", activity.ID);
-                        cmd.Parameters.AddWithValue("Type", activity.Activity.ActivityType);
-                        cmd.Parameters.AddWithValue("Text", activity.Activity.Name);
-
-                        try
-                        {
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                    }
-                }
-            }
+            await database.ExecuteNonQuery(query,
+                newEntry.Type, newEntry.Status, id);
         }
     }
 }

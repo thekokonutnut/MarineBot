@@ -235,7 +235,7 @@ namespace MarineBot
             await _client.ConnectAsync();
             await WaitForCancellationAsync();
 
-            await _dbcontroller.SaveEverything();
+            //await _dbcontroller.SaveEverything();
         }
 
         public void RequestShutdown()

@@ -29,6 +29,7 @@ namespace MarineBot.Controller
             databaseTables.Add(new ReminderTable(ConnectionString));
             databaseTables.Add(new PollTable(ConnectionString));
             databaseTables.Add(new ActivityTable(ConnectionString));
+            databaseTables.Add(new UserTable(ConnectionString));
         }
 
         public T GetTable<T>()
@@ -61,15 +62,6 @@ namespace MarineBot.Controller
             foreach (var table in databaseTables)
             {
                 await table.LoadTable();
-            }
-        }
-
-        public async Task SaveEverything()
-        {
-            Console.WriteLine("[System] Saving entities to database.");
-            foreach (var table in databaseTables)
-            {
-                await table.SaveChanges();
             }
         }
     }

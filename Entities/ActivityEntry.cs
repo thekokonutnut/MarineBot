@@ -10,18 +10,14 @@ namespace MarineBot.Entities
     internal class ActivityEntry
     {
         public int ID;
+        public int UserID;
+        public ActivityType Type;
+        public string Status;
+
         public ulong AddedBy;
-        public DiscordActivity Activity;
 
         public ActivityEntry()
         {
-        }
-
-        public ActivityEntry(int id, ulong added, DiscordActivity activity)
-        {
-            ID = id;
-            AddedBy = added;
-            Activity = activity;
         }
     }
 }

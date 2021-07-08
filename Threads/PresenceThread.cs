@@ -7,6 +7,7 @@ using MarineBot.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,8 @@ namespace MarineBot.Threads
 
             Running = true;
 
-            var statusList = await _activityTable.GetActivitiesDB(true);
+            var statuses = await _activityTable.GetActivitiesDB(true);
+            var statusList = statuses.ToList();
             var usedStatus = new List<int>();
 
             Console.WriteLine("[System] Presence Thread running.");
@@ -49,7 +51,8 @@ namespace MarineBot.Threads
                 if (usedStatus.Count >= statusList.Count)
                 {
                     usedStatus.Clear();
-                    statusList = await _activityTable.GetActivitiesDB(true);
+                    statuses = await _activityTable.GetActivitiesDB(true);
+                    statusList = statuses.ToList();
                 }
 
                 var index = NumbersHelper.GetRandom(0, statusList.Count - 1);
@@ -73,7 +76,7 @@ namespace MarineBot.Threads
         {
             string final_status = "";
             DiscordActivity activity;
-            string text = new_status.Activity.Name;
+            string text = new_status.Status;
 
             if (text.Length > 4)
             {
@@ -91,7 +94,7 @@ namespace MarineBot.Threads
                     else
                         final_status += text.Substring(start_index, step);
 
-                    activity = new DiscordActivity($"{final_status}", new_status.Activity.ActivityType);
+                    activity = new DiscordActivity($"{final_status}", new_status.Type);
                     await _client.UpdateStatusAsync(activity);
 
                     Thread.Sleep(300);
@@ -103,14 +106,14 @@ namespace MarineBot.Threads
                 {
                     final_status += c;
 
-                    activity = new DiscordActivity($"{final_status}", new_status.Activity.ActivityType);
+                    activity = new DiscordActivity($"{final_status}", new_status.Type);
                     await _client.UpdateStatusAsync(activity);
 
                     Thread.Sleep(350);
                 }
             }
 
-            activity = new DiscordActivity($"{final_status} | {_config.Prefix}help", new_status.Activity.ActivityType);
+            activity = new DiscordActivity($"{final_status} | {_config.Prefix}help", new_status.Type);
             await _client.UpdateStatusAsync(activity);
         }
     }

@@ -116,11 +116,13 @@ namespace MarineBot.Entities
     {
         public static void SendJSONError(this HttpSession sess, string message, int statuscode = 500)
         {
+            //Console.WriteLine($"Error - {message}");
             sess.SendResponseAsync(sess.Response.MakeErrorResponse(statuscode, JsonConvert.SerializeObject(new { Error = true, Message = message })));
         }
 
         public static void SendJSONObject(this HttpSession sess, object obj)
         {
+            //Console.WriteLine($"Response - {JsonConvert.SerializeObject(obj)}");
             sess.SendResponseAsync(sess.Response.MakeGetResponse(JsonConvert.SerializeObject(obj)));
         }
     }

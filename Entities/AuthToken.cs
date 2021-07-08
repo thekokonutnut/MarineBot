@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MarineBot.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,11 +10,23 @@ namespace MarineBot.Entities
     internal class AuthToken
     {
         public int ID;
-        public AuthUser User;
         public string AccessToken;
         public string SessionCode;
-        public DateTime Retrieved;
-        public DateTime ExpiresAt;
+        public DateTimeOffset Retrieved;
+        public DateTimeOffset ExpiresAt;
         public string RefreshToken;
+
+        public AuthToken()
+        {
+
+        }
+        public AuthToken(OAuth2Response response)
+        {
+            AccessToken = response.Token;
+            SessionCode = CryptoHelper.CreateMD5(response.Token);
+            Retrieved = response.Requested;
+            ExpiresAt = response.Requested.AddSeconds(response.Lifespan);
+            RefreshToken = response.RefreshToken;
+        }
     }
 }

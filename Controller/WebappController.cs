@@ -92,6 +92,7 @@ namespace MarineBot.Controller
             SiteHandler.RegisterSite(AddActivitySite,       "/activity/add");
             SiteHandler.RegisterSite(DeleteActivitySite,    "/activity/delete");
             SiteHandler.RegisterSite(EditActivitySite,      "/activity/edit");
+            SiteHandler.RegisterSite(AuthCheckSite,         "/auth/check");
             SiteHandler.RegisterSite(AuthSite,              "/auth");
         }
 
@@ -221,6 +222,29 @@ namespace MarineBot.Controller
             AuthUsers.Add(existingUser);
 
             session.SendJSONObject(new { Error = false, Message = "Succesfully authed.", Session = existingUser.Token.SessionCode, ID = existingUser.ID, Info = userInfo });
+        }
+
+        private Task AuthCheckSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return Task.CompletedTask;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONObject(new { Error = false, Authed = false });
+                return Task.CompletedTask;
+            }
+
+            session.SendJSONObject(new { Error = false, Authed = true, ID = currentUser.ID });
+
+            return Task.CompletedTask;
         }
 
         private async Task FindActivitySite(HttpSession session, RequestContext rtx)

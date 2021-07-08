@@ -70,7 +70,11 @@ namespace MarineBot.Database
             var result = await database.ExecuteNonQuery(query,
                 activity.UserID, activity.Type, activity.Status);
 
-            return (int)result.Command.LastInsertedId;
+            int insertedId = (int)result.Command.LastInsertedId;
+
+            await LogTable.LogActivityInfo(insertedId, activity.UserID, $"Added new entry (type {activity.Type}): \"{activity.Status}\".");
+
+            return insertedId;
         }
 
         public async Task AddActivitiesDB(IEnumerable<ActivityEntry> activities)
@@ -81,18 +85,12 @@ namespace MarineBot.Database
             }
         }
 
-        public async Task RemoveActivity(int id)
+        public async Task RemoveActivity(int id, int userId = -1)
         {
             var query = "DELETE FROM `activities` WHERE `activity_id` = @P0";
             await database.ExecuteNonQuery(query, id);
-        }
 
-        public async Task RemoveActivitiesDB(IEnumerable<int> ids)
-        {
-            foreach (var id in ids)
-            {
-                await RemoveActivity(id);
-            }
+            await LogTable.LogActivityInfo(id, userId, "Deleted entry.");
         }
 
         public async Task UpdateActivity(int id, ActivityEntry newEntry)
@@ -102,6 +100,8 @@ namespace MarineBot.Database
 
             await database.ExecuteNonQuery(query,
                 newEntry.Type, newEntry.Status, id);
+
+            await LogTable.LogActivityInfo(id, newEntry.UserID, $"Updated entry (type {newEntry.Type}): \"{newEntry.Status}\".");
         }
     }
 }

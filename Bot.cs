@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using DSharpPlus.Interactivity.Extensions;
 using MarineBot.Converters;
 using MarineBot.Attributes;
+using MarineBot.Database;
 
 namespace MarineBot
 {
@@ -131,6 +132,7 @@ namespace MarineBot
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             _client.Logger.Log(LogLevel.Information, $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
+            _ = LogTable.LogCommandInfo(e.Context);
             return Task.CompletedTask;
         }
 

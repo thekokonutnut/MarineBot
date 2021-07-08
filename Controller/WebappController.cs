@@ -515,7 +515,7 @@ namespace MarineBot.Controller
                 return;
             }
 
-            await _activityTable.RemoveActivity(id);
+            await _activityTable.RemoveActivity(id, currentUser.ID);
             await _activityTable.LoadTable();
 
             session.SendJSONObject(new { Error = false, ID = id });

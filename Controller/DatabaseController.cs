@@ -30,6 +30,8 @@ namespace MarineBot.Controller
             databaseTables.Add(new PollTable(ConnectionString));
             databaseTables.Add(new ActivityTable(ConnectionString));
             databaseTables.Add(new UserTable(ConnectionString));
+
+            LogTable.Initialize(ConnectionString);
         }
 
         public T GetTable<T>()

@@ -28,7 +28,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
 
@@ -53,7 +53,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
 

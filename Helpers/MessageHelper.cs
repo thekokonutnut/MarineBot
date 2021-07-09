@@ -15,7 +15,7 @@ namespace MarineBot.Helpers
             return new DiscordEmbedBuilder()
                 .WithColor(0xeaeaea)
                 .WithDescription(message)
-                .WithTitle(":paperclip: Información")
+                .WithTitle(":paperclip: Information")
                 .WithThumbnail(FacesHelper.GetIdleFace());
         }
 
@@ -51,7 +51,7 @@ namespace MarineBot.Helpers
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0x08d9d6)
                 .WithDescription(message)
-                .WithTitle(":radioactive: Advertencia")
+                .WithTitle(":radioactive: Warning")
                 .WithThumbnail(FacesHelper.GetWarningFace());
 
             return await ctx.RespondAsync(embed: embed);
@@ -62,7 +62,7 @@ namespace MarineBot.Helpers
             return new DiscordEmbedBuilder()
                 .WithColor(0xff2e63)
                 .WithDescription(message)
-                .WithTitle(":white_check_mark: Exitoso")
+                .WithTitle(":white_check_mark: Success")
                 .WithThumbnail(FacesHelper.GetSuccessFace());
         }
         public static async Task<DiscordMessage> SendSuccessEmbed(CommandContext ctx, string message)

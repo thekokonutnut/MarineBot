@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarineBot.Threads
 {
@@ -22,14 +23,14 @@ namespace MarineBot.Threads
 
         private string[] _reactions = { ":green_square:", ":red_square:", ":yellow_square:", ":blue_square:", ":purple_square:" };
 
-        bool Running = true;
+        bool Running = false;
 
         public PollThread(IServiceProvider serviceProvider)
         {
-            var controller  = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
+            var controller  = serviceProvider.GetService<DatabaseController>();
             _pollTable      = controller.GetTable<PollTable>();
-            _cts            = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
-            _client         = (DiscordClient)serviceProvider.GetService(typeof(DiscordClient));
+            _cts            = serviceProvider.GetService<CancellationTokenSource>();
+            _client         = serviceProvider.GetService<DiscordClient>();
         }
 
         private bool ValidUser(DiscordUser user)
@@ -51,7 +52,7 @@ namespace MarineBot.Threads
                 {
                     embed.AddField($"{_reactions[i]}\t**{options[i]}**", $"{reactionCount[i]}");
                 }
-                embed.WithDescription("\n**Encuesta finalizada.**");
+                embed.WithDescription("\n**Poll completed.**");
             } 
             else
             {
@@ -61,7 +62,7 @@ namespace MarineBot.Threads
                     builder.Append($"{_reactions[i]}\t**{options[i]}**\n\n");
                 }
                 var timeLeft = poll.Time - (DateTimeOffset.UtcNow.ToUnixTimeSeconds() - poll.StartTime);
-                builder.Append($"\n***Expira en: {timeLeft} segundos***");
+                builder.Append($"\n***Ends in: {timeLeft} seconds***");
                 embed.WithDescription(builder.ToString());
             }
 

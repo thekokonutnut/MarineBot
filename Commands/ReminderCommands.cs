@@ -21,7 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MarineBot.Commands
 {
     [Group("Reminder"), Aliases("r")]
-    [Description("Comandos de recordatorios.")]
+    [Description("Reminder commands.")]
     [RequireGuild]
     internal class ReminderCommands : BaseCommandModule
     {
@@ -43,9 +43,9 @@ namespace MarineBot.Commands
             await cmds.ExecuteCommandAsync(context);
         }
 
-        [Command("create"), Description("Crea un recordatorio.")]
+        [Command("create"), Description("Create a reminder.")]
         [Example("reminder create La torta en el horno", "r create Que")]
-        public async Task CreateReminderCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
+        public async Task CreateReminderCommand(CommandContext ctx, [Description("Reminder name."), RemainingText()] string name)
         {
             if (name == null) throw new ArgumentException();
 
@@ -56,16 +56,16 @@ namespace MarineBot.Commands
 
             if (_reminderTable.ReminderExists(name))
             {
-                await MessageHelper.SendWarningEmbed(ctx, "Ese identificador ya está en uso.");
+                await MessageHelper.SendWarningEmbed(ctx, "That identifier is already in use.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
                 return;
             }
 
             var embed = new DiscordEmbedBuilder()
                 .WithColor(0x347aeb)
-                .WithDescription("Escribe una descripción:")
-                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
-                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithDescription("Write a description:")
+                .WithFooter("Use " + ctx.Prefix + "cancel to cancel the operation.")
+                .WithTitle("Creating reminder **" + name + "**")
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
             var message = await ctx.RespondAsync(embed: embed);
@@ -81,7 +81,7 @@ namespace MarineBot.Commands
             }
             if (descMsg.Result.Content.ToLower() == cancelCmd)
             {
-                await MessageHelper.SendWarningEmbed(ctx, "Cancelaste la operación.");
+                await MessageHelper.SendWarningEmbed(ctx, "You canceled the operation.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
                 return;
             }
@@ -90,12 +90,12 @@ namespace MarineBot.Commands
 
             embed = new DiscordEmbedBuilder()
                 .WithColor(0x347aeb)
-                .WithDescription("A que hora? (HH:MM):")
-                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
-                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithDescription("What time? (HH:MM):")
+                .WithFooter("Use " + ctx.Prefix + "cancel to cancel the operation.")
+                .WithTitle("Creating reminder **" + name + "**")
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
-            embed.AddField("Ahora mismo son las: ", DateTime.UtcNow.ToString("HH:mm"));
+            embed.AddField("Current time is: ", DateTime.UtcNow.ToString("HH:mm"));
             await message.ModifyAsync(null, new Optional<DiscordEmbed>(embed));
 
             Regex match = new Regex("\\d\\d\\:\\d\\d");
@@ -108,7 +108,7 @@ namespace MarineBot.Commands
             }
             if (timeMsg.Result.Content.ToLower() == cancelCmd)
             {
-                await MessageHelper.SendWarningEmbed(ctx, "Cancelaste la operación.");
+                await MessageHelper.SendWarningEmbed(ctx, "You canceled the operation.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
                 return;
             }
@@ -117,9 +117,9 @@ namespace MarineBot.Commands
 
             embed = new DiscordEmbedBuilder()
                 .WithColor(0x347aeb)
-                .WithDescription("En que canal debo anunciar:")
-                .WithFooter("Usa " + ctx.Prefix + "cancel para cancelar la operación.")
-                .WithTitle("Creando recordatorio **" + name + "**")
+                .WithDescription("On which channel should I announce:")
+                .WithFooter("Use " + ctx.Prefix + "cancel to cancel the operation.")
+                .WithTitle("Creating reminder **" + name + "**")
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
             await message.ModifyAsync(null, new Optional<DiscordEmbed>(embed));
@@ -133,7 +133,7 @@ namespace MarineBot.Commands
             }
             if (channelMsg.Result.Content.ToLower() == cancelCmd)
             {
-                await MessageHelper.SendWarningEmbed(ctx, "Cancelaste la operación.");
+                await MessageHelper.SendWarningEmbed(ctx, "You canceled the operation.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
                 return;
             }
@@ -146,7 +146,7 @@ namespace MarineBot.Commands
 
             if (channelId == 0 || ctx.Guild.Channels[channelId] == null)
             {
-                await MessageHelper.SendWarningEmbed(ctx, "No pude reconocer ese canal.");
+                await MessageHelper.SendWarningEmbed(ctx, "I could not identify that channel.");
                 _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
                 return;
             }
@@ -158,30 +158,30 @@ namespace MarineBot.Commands
             await message.DeleteAsync();
 
             await MessageHelper.SendSuccessEmbed(ctx, 
-                $"Recordatorio creado con éxito.\nID: **{name}**" +
-                $"\nHora: **{timeMsg.Result.Content}**" +
-                $"\nCanal: **{ctx.Guild.Channels[channelId].Name}**");
+                $"Reminder successfully created.\nID: **{name}**" +
+                $"\nHour: **{timeMsg.Result.Content}**" +
+                $"\nChannel: **{ctx.Guild.Channels[channelId].Name}**");
             _cmdinput.ReleaseUserIfMethod(ctx.User.Id, MethodBase.GetCurrentMethod());
 
             await _reminderTable.SaveChanges();
         }
 
-        [Command("delete"), Aliases("remove"), Description("Elimina el recordatorio especificado.")]
+        [Command("delete"), Aliases("remove"), Description("Deletes the specified reminder.")]
         [Example("reminder delete Que", "r remove The Game")]
-        public async Task DeleteRemindersCommand(CommandContext ctx, [Description("ID del recordatorio."), RemainingText()] string name)
+        public async Task DeleteRemindersCommand(CommandContext ctx, [Description("Reminder name."), RemainingText()] string name)
         {
             if (name == null) throw new ArgumentException();
 
             if (!_reminderTable.RemoveReminder(name))
             {
-                await MessageHelper.SendWarningEmbed(ctx, $"No se encontró recordatorio con esa ID.");
+                await MessageHelper.SendWarningEmbed(ctx, $"No reminder found with that name.");
                 return;
             }
-            await MessageHelper.SendSuccessEmbed(ctx, $"Recordatorio eliminado con éxito.\nID: **{name}**");
+            await MessageHelper.SendSuccessEmbed(ctx, $"Reminder successfully removed.\nID: **{name}**");
             await _reminderTable.SaveChanges();
         }
 
-        [Command("list"), Description("Lista todos los recordatorios activos.")]
+        [Command("list"), Description("Lists all active reminders.")]
         public async Task ListRemindersCommand(CommandContext ctx)
         {
             if (!_cmdinput.IsAvailable(ctx.User.Id))
@@ -200,10 +200,10 @@ namespace MarineBot.Commands
                     guildList.Add(reminder);
 
             if (guildList.Count == 0)
-                embedBuilder.WithDescription("No hay ningún recordatorio activo.");
+                embedBuilder.WithDescription("There are no active reminders.");
             else
                 foreach (var reminder in guildList)
-                    embedBuilder.AddField(reminder.Name, "Descripción: " + reminder.Description + "\nHora: **" + reminder.Time + "**");
+                    embedBuilder.AddField(reminder.Name, "Description: " + reminder.Description + "\nHour: **" + reminder.Time + "**");
             
             await ctx.RespondAsync(embed: embedBuilder);
         }

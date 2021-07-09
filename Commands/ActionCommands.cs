@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace MarineBot.Commands
 {
     [Group("Actions"), Aliases("act")]
-    [Description("Comandos de acciones.")]
+    [Description("Action commands.")]
     [RequireGuild]
     internal class ActionCommands : BaseCommandModule
     {
@@ -24,7 +24,7 @@ namespace MarineBot.Commands
             await cmds.ExecuteCommandAsync(context);
         }
 
-        [Command("slap"), Description("Por pete.")]
+        [Command("slap"), Description("Fag.")]
         [Example("slap @Snessy")]
         public async Task SlapCommand(CommandContext ctx, [Description("Who")] DiscordMember member)
         {

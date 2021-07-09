@@ -7,6 +7,7 @@ using MarineBot.Controller;
 using MarineBot.Database;
 using MarineBot.Entities;
 using MarineBot.Helpers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarineBot.Threads
 {
@@ -19,10 +20,10 @@ namespace MarineBot.Threads
         bool Running = false;
         public ReminderThread(IServiceProvider serviceProvider)
         {
-            var controller  = (DatabaseController)serviceProvider.GetService(typeof(DatabaseController));
+            var controller  = serviceProvider.GetService<DatabaseController>();
             _reminderTable  = controller.GetTable<ReminderTable>();
-            _cts            = (CancellationTokenSource)serviceProvider.GetService(typeof(CancellationTokenSource));
-            _client         = (DiscordClient)serviceProvider.GetService(typeof(DiscordClient));
+            _cts            = serviceProvider.GetService<CancellationTokenSource>();
+            _client         = serviceProvider.GetService<DiscordClient>();
         }
 
         private async Task TriggerReminder(Reminder reminder)

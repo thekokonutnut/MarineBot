@@ -132,7 +132,10 @@ namespace MarineBot
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             _client.Logger.Log(LogLevel.Information, $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
-            _ = LogTable.LogCommandInfo(e.Context);
+
+            if (e.Command.QualifiedName != "help")
+                _ = LogTable.LogCommandInfo(e.Context);
+
             return Task.CompletedTask;
         }
 
@@ -182,16 +185,16 @@ namespace MarineBot
             {
                 var checks = (ex as ChecksFailedException).FailedChecks;
                 if (checks.Any(c => c is DSharpPlus.CommandsNext.Attributes.RequireNsfwAttribute))
-                    await MessageHelper.SendErrorEmbed(e.Context, "No puedes ejecutar este comándo en un canál no NSFW.");
+                    await MessageHelper.SendErrorEmbed(e.Context, "You cannot run this command on a non-NSFW channel.");
                 else
-                    await MessageHelper.SendErrorEmbed(e.Context, "No tienes permiso para ejecutar este comándo.");
+                    await MessageHelper.SendErrorEmbed(e.Context, "You do not have permission to execute this command.");
             }
             else if (ex is ArgumentException && e.Command != null)
             {
                 if (e.Command.QualifiedName == null)
                 {
                     var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-                    await MessageHelper.SendErrorEmbed(e.Context, $"{emoji} Error al intentar ejecutar el comándo.");
+                    await MessageHelper.SendErrorEmbed(e.Context, $"{emoji} Error when attempting to perform the command.");
                 }
                 else
                 {

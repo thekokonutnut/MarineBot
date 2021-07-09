@@ -42,7 +42,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             XmlDocument xmlResult = new XmlDocument();
             xmlResult.LoadXml(respstring);
@@ -59,7 +59,7 @@ namespace MarineBot.Helpers
             int pageNum = 0;
 
             if (postCount <= 0)
-                throw new Exception("No se encontraron imágenes con esa tag");
+                throw new Exception("No images found with that tag.");
 
             var random = new Random();
 
@@ -83,7 +83,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
 
@@ -115,7 +115,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             XmlDocument xmlResult = new XmlDocument();
             xmlResult.LoadXml(respstring);
@@ -123,7 +123,7 @@ namespace MarineBot.Helpers
             JObject searchResult = JObject.Parse(JsonConvert.SerializeXmlNode(xmlResult));
 
             if (searchResult["tags"] == null)
-                throw new Exception("No se encontraron tags.");
+                throw new Exception("No tags were found.");
 
             var result = new List<SafebooruTag>();
 
@@ -192,7 +192,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             XmlDocument xmlResult = new XmlDocument();
             xmlResult.LoadXml(respstring);
@@ -209,7 +209,7 @@ namespace MarineBot.Helpers
             int pageNum = 0;
 
             if (postCount <= 0)
-                throw new Exception("No se encontraron imágenes con esa tag");
+                throw new Exception("No images found with that tag.");
 
             var random = new Random();
 
@@ -233,7 +233,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
 
@@ -264,14 +264,14 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
 
             var tagCount = searchResult.Count;
 
             if (tagCount <= 0)
-                throw new Exception("No se encontraron tags.");
+                throw new Exception("No tags were found.");
 
             var result = new List<GelbooruTag>();
 
@@ -319,7 +319,7 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JObject searchResult = JObject.Parse(respstring);
 
@@ -327,7 +327,7 @@ namespace MarineBot.Helpers
 
             int totalItems = postsResult.Count;
             if (totalItems <= 0)
-                throw new Exception($"No se encontraron imágenes con esa tag.");
+                throw new Exception($"No images found with that tag.");
 
             var random = new Random();
             var ranCount = random.Next(0, postsResult.Count);

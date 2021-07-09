@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MarineBot.Commands
 {
     [Group("Images"), Aliases("img")]
-    [Description("Comandos de imágenes online.")]
+    [Description("Online image commands.")]
     [ShortCommandsGroup]
     internal class ImageCommands : BaseCommandModule
     {
@@ -36,9 +36,9 @@ namespace MarineBot.Commands
             await cmds.ExecuteCommandAsync(context);
         }
 
-        [Command("imgur"), Description("Obtiene una imágen al azar de Imgur dado una o más etiquetas.")]
+        [Command("imgur"), Description("Gets a random image from Imgur given one or more tags.")]
         [Example("images imgur cat", "img imgur dog")]
-        public async Task ImgurCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
+        public async Task ImgurCommand(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -67,9 +67,9 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("safebooru"), Description("Obtiene una imágen de Safebooru al azar dado una o más etiquetas.")]
+        [Command("safebooru"), Description("Gets a random image from Safebooru given one or more tags.")]
         [Example("images safebooru blue_eyes blush", "img safebooru touhou highres")]
-        public async Task SafebooruCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
+        public async Task SafebooruCommand(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -95,9 +95,9 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("safebooru:tag"), Description("Busca etiquetas de safebooru.")]
+        [Command("safebooru:tag"), Description("Search for Safebooru tags.")]
         [Example("images safebooru:tag nezuko", "img safebooru:tag shingeki")]
-        public async Task SafebooruTagCommand(CommandContext ctx, [Description("Etiqueta a buscar"), RemainingText()] string tag)
+        public async Task SafebooruTagCommand(CommandContext ctx, [Description("Tag to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -126,10 +126,10 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("gelbooru"), Description("Obtiene una imágen de Gelbooru al azar dado una o más etiquetas.")]
+        [Command("gelbooru"), Description("Gets a random image from Gelbooru given one or more tags.")]
         [Example("images gelbooru blue_eyes blush", "img gelbooru touhou highres")]
         [RequireNsfw()]
-        public async Task GelbooruCommand(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
+        public async Task GelbooruCommand(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -155,9 +155,9 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("gelbooru:tag"), Description("Busca etiquetas de gelbooru.")]
+        [Command("gelbooru:tag"), Description("Search for Safebooru tags.")]
         [Example("images gelbooru:tag nezuko", "img gelbooru:tag shingeki")]
-        public async Task GelbooruTagCommand(CommandContext ctx, [Description("Etiqueta a buscar"), RemainingText()] string tag)
+        public async Task GelbooruTagCommand(CommandContext ctx, [Description("Tag to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -186,10 +186,11 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("e621"), Description("Obtiene una imágen de E621 al azar dado una o más etiquetas.")]
+        [Command("e621"), Description("Gets a random image from E621 given one or more tags.")]
         [Example("images e621 rating:safe human_only", "img e621 -anthro -furry")]
         [RequireNsfw()]
-        public async Task E621Command(CommandContext ctx, [Description("Etiqueta(s) a buscar"), RemainingText()] string tag)
+        [Hidden]
+        public async Task E621Command(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
             if (tag == null) throw new ArgumentException();
             try
@@ -215,7 +216,7 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("emoji"), Description("Obtiene una emoji al azar. ¿De donde? Nose.")]
+        [Command("emoji"), Description("You get a random emoji. From where? I don't know.")]
         [Example("images emoji")]
         public async Task RandomEmojiCommand(CommandContext ctx)
         {
@@ -231,7 +232,7 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("discord"), Description("Obtiene una imágen de Discord al azar. ¿De donde? Nose.")]
+        [Command("discord"), Description("Get a random image of Discord. From where? I don't know.")]
         [Example("images discord")]
         public async Task RandomImageCommand(CommandContext ctx)
         {

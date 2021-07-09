@@ -22,7 +22,7 @@ namespace MarineBot.Entities
             : base(ctx)
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
-                .WithTitle(":wheelchair::wheelchair::wheelchair: Ayuda")
+                .WithTitle(":wheelchair::wheelchair::wheelchair: Help")
                 .WithColor(0xf08a5d)
                 .WithThumbnail(FacesHelper.GetIdleFace());
 
@@ -34,7 +34,7 @@ namespace MarineBot.Entities
         {
             this.Command = command;
 
-            this.EmbedBuilder.WithDescription($"{Formatter.InlineCode(command.Name)}: {command.Description ?? "Sin descripción."}");
+            this.EmbedBuilder.WithDescription($"{Formatter.InlineCode(command.Name)}: {command.Description ?? "No description."}");
 
             if (command.Aliases?.Any() == true)
                 this.EmbedBuilder.AddField("Aliases", string.Join(", ", command.Aliases.Select(Formatter.InlineCode)), false);
@@ -53,13 +53,13 @@ namespace MarineBot.Entities
                     sb.Append("`\n");
 
                     foreach (var arg in ovl.Arguments)
-                        sb.Append('`').Append(arg.Name).Append(" (").Append(this.CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "Sin descripción.").Append('\n');
+                        sb.Append('`').Append(arg.Name).Append(" (").Append(this.CommandsNext.GetUserFriendlyTypeName(arg.Type)).Append(")`: ").Append(arg.Description ?? "No description.").Append('\n');
 
                     sb.Append('\n');
                 }
 
-                this.EmbedBuilder.AddField("Modo de uso", sb.ToString().Trim(), false);
-                this.EmbedBuilder.WithFooter("<> = Requerido [] = Opcional");
+                this.EmbedBuilder.AddField("Usage", sb.ToString().Trim(), false);
+                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
             }
 
             var exampleAtt = (ExampleAttribute)command.CustomAttributes.FirstOrDefault(att => att is ExampleAttribute);
@@ -70,7 +70,7 @@ namespace MarineBot.Entities
                 {
                     sb.Append($"`{_prefix}{item}`\n");
                 }
-                this.EmbedBuilder.AddField("Ejemplos", sb.ToString().Trim(), false);
+                this.EmbedBuilder.AddField("Examples", sb.ToString().Trim(), false);
             }
 
             return this;
@@ -90,16 +90,16 @@ namespace MarineBot.Entities
                         foreach (var arg in ovl.Arguments)
                             sb.Append(arg.IsOptional || arg.IsCatchAll ? " [" : " <").Append(arg.Name).Append(arg.IsCatchAll ? "..." : "").Append(arg.IsOptional || arg.IsCatchAll ? ']' : '>');
 
-                        sb.Append($"`: {cmd.Description ?? "Sin descripción."}");
+                        sb.Append($"`: {cmd.Description ?? "No description."}");
 
                         sb.Append("\n");
                     }
                 }
 
-                this.EmbedBuilder.AddField("Comandos", sb.ToString().Trim(), false);
-                this.EmbedBuilder.WithFooter("<> = Requerido [] = Opcional");
+                this.EmbedBuilder.AddField("Commands", sb.ToString().Trim(), false);
+                this.EmbedBuilder.WithFooter("<> = Required [] = Optional");
             } else {
-                this.EmbedBuilder.AddField("Comandos principales sin categorizar", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
+                this.EmbedBuilder.AddField("Main commands uncategorized", string.Join("\n", subcommands.Select(x => Formatter.InlineCode(_prefix + x.Name))), false);
             }
 
             return this;
@@ -111,8 +111,15 @@ namespace MarineBot.Entities
             {
                 System.DateTime buildDate = System.IO.File.GetLastWriteTime(System.Reflection.Assembly.GetExecutingAssembly().Location);
 
-                this.EmbedBuilder.WithDescription($"Un bot de propósito misceláneo,\nprobablemente no muy útil.\nCreado para uso personal, por mí.\n\n[Repositorio en GitHub](https://github.com/thekokonutnut/MarineBot)\n[Current build: {buildDate}]\n[actualmente {QuotesHelper.GetRandomStatus()}]");
-                this.EmbedBuilder.AddField("⠀", $"Usa {Formatter.InlineCode(_prefix + "help <comando>")} para información\nde uso del comando.\nO solo el comando sin argumentos, eso\ntambién funciona.");
+                this.EmbedBuilder.WithDescription($"A bot with a fun variety of commands.\n"+
+                                                "Approved by **PoryToScorp.**\n"+
+                                                "May invade your server but nobody even\n"+
+                                                "dares about that!\n"+
+                                                "\n[Website Dashboard](https://bot.pie.moe/)"+
+                                                $"\n[Current build: {buildDate}]");
+                this.EmbedBuilder.AddField("⠀", $"Use {Formatter.InlineCode(_prefix + "help <command>")} for command\n"+
+                                                "usage information. Or just the command\n"+ 
+                                                "without arguments, that works too..");
                 this.EmbedBuilder.Title = "Smuggier everyday";
             }
 

@@ -18,7 +18,7 @@ using System.Linq;
 namespace MarineBot.Commands
 {
     [Group("admin")]
-    [Description("Comandos de administración.")]
+    [Description("Admin commands.")]
     [Hidden, RequireBotAdministrator]
     internal class AdminCommands : BaseCommandModule
     {
@@ -33,12 +33,12 @@ namespace MarineBot.Commands
             await cmds.ExecuteCommandAsync(context);
         }
 
-        [Command("shutdown"), Description("Apaga el bot.")]
+        [Command("shutdown"), Description("Shutdown the bot.")]
         public async Task ShutdownCommand(CommandContext ctx)
         {
             try
             {
-                await MessageHelper.SendInfoEmbed(ctx, "Apagando el bot...");
+                await MessageHelper.SendInfoEmbed(ctx, "Shutting down the bot...");
                 _botApp.RequestShutdown();
             }
             catch (Exception e)
@@ -47,12 +47,12 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("restart"), Description("Reinicia el bot.")]
+        [Command("restart"), Description("Restart the bot.")]
         public async Task RestartCommand(CommandContext ctx)
         {
             try
             {
-                await MessageHelper.SendInfoEmbed(ctx, "Reiniciando el bot...");
+                await MessageHelper.SendInfoEmbed(ctx, "Restarting the bot...");
                 _botApp.RequestRestart();
             }
             catch (Exception e)
@@ -61,7 +61,7 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("listadmins"), Description("Lista los administradores del bot.")]
+        [Command("listadmins"), Description("List the bot administrators.")]
         public async Task ListAdminsCommand(CommandContext ctx)
         {
             try
@@ -75,8 +75,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("eval"), Description("Evalua una expresión.")]
-        public async Task EvalCommand(CommandContext ctx, [Description("Expresión"), RemainingText()] string expresion)
+        [Command("eval"), Description("Evaluates an expression.")]
+        public async Task EvalCommand(CommandContext ctx, [Description("Expression"), RemainingText()] string expresion)
         {
             if (expresion == null) throw new ArgumentException();
             try

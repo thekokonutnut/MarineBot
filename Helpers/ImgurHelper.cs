@@ -49,13 +49,13 @@ namespace MarineBot.Helpers
             int status = (int)response.StatusCode;
 
             if (status != 200)
-                throw new Exception($"La API devolvió el código de respuesta: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JObject imgurSearch = JObject.Parse(respstring);
 
             int totalItems = (int)imgurSearch["data"]["total_items"];
             if (totalItems <= 0)
-                throw new Exception($"No se encontraron imágenes con esa tag.");
+                throw new Exception($"No images found with that tag.");
 
             IList<JToken> results = imgurSearch["data"]["items"].Children().ToList();
             IList<ImgurImage> searchResults = new List<ImgurImage>();

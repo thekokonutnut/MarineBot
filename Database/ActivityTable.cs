@@ -77,14 +77,6 @@ namespace MarineBot.Database
             return insertedId;
         }
 
-        public async Task AddActivitiesDB(IEnumerable<ActivityEntry> activities)
-        {
-            foreach (var activity in activities)
-            {
-                await AddActivity(activity);
-            }
-        }
-
         public async Task RemoveActivity(int id, int userId = -1)
         {
             var query = "DELETE FROM `activities` WHERE `activity_id` = @P0";

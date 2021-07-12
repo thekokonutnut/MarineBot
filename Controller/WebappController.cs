@@ -170,6 +170,12 @@ namespace MarineBot.Controller
 
             if (existingUser is not null)
             {
+                await _userTable.UpdateUserDB(existingUser.ID, user);
+
+                existingUser.Username = user.Username;
+                existingUser.Discriminator = user.Discriminator;
+                existingUser.AvatarHash = user.AvatarHash;
+
                 AuthUsers.Add(existingUser);
 
                 info = new AuthUserInfo(existingUser);

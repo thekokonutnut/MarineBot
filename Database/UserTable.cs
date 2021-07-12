@@ -41,6 +41,15 @@ namespace MarineBot.Database
             return (int)result.Command.LastInsertedId;
         }
 
+        public async Task UpdateUserDB(int user_id, AuthUser userData)
+        {
+            var query = "UPDATE `auth_users` SET `username` = @P0, `discriminator` = @P1, `avatar_hash` = @P2 " +
+                        "WHERE  `user_id` = @P3;";
+
+            await database.ExecuteNonQuery(query,
+                userData.Username, userData.Discriminator, userData.AvatarHash, user_id);
+        }
+
         public async Task<int> AddTokenDB(AuthToken token)
         {
             var query = "INSERT INTO `auth_tokens` (`access_token`, `session_code`, `retrieved`, `expires_at`, `refresh_token`) " +

@@ -23,7 +23,7 @@ namespace MarineBot.Controller
         public DatabaseController(DatabaseConfig config)
         {
             _config = config;
-            ConnectionString = $"Server={_config.Server};User ID={_config.User};Password={_config.Password};Database={_config.Database}";
+            ConnectionString = $"Server={_config.Server};Port={_config.Port};User ID={_config.User};Password={_config.Password};Database={_config.Database}";
 
             databaseTables = new List<ITable>();
             databaseTables.Add(new ReminderTable(ConnectionString));

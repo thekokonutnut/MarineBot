@@ -61,6 +61,8 @@ namespace MarineBot.Helpers
     {
         [JsonProperty("server")]
         internal string Server = "";
+        [JsonProperty("port")]
+        internal string Port = "3306";
         [JsonProperty("user")]
         internal string User = "";
         [JsonProperty("password")]

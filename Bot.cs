@@ -118,7 +118,6 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.PollCommands>();
             _cnext.RegisterCommands<Commands.UtilsCommands>();
             _cnext.RegisterCommands<Commands.ImageCommands>();
-            _cnext.RegisterCommands<Commands.ActionCommands>();
             _cnext.RegisterCommands<Commands.AdminCommands>();
             _cnext.RegisterCommands<Commands.MusicCommands>();
 

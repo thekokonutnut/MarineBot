@@ -89,5 +89,37 @@ namespace MarineBot.Commands
                 await MessageHelper.SendErrorEmbed(ctx, e.Message);
             }
         }
+
+        [Command("test"), Description("test.")]
+        public async Task testcmd(CommandContext ctx, DiscordMember user, string msg)
+        {
+            try
+            {
+                await ctx.Message.DeleteAsync();
+                var webh = await ctx.Channel.CreateWebhookAsync(user.Username);
+                var builder = new DiscordWebhookBuilder().WithUsername(user.Username).WithAvatarUrl(user.AvatarUrl).WithContent(msg);
+                await webh.ExecuteAsync(builder);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("test2"), Description("test.")]
+        public async Task testcmd2(CommandContext ctx, string username, string avatar, string msg)
+        {
+            try
+            {
+                await ctx.Message.DeleteAsync();
+                var webh = await ctx.Channel.CreateWebhookAsync(username);
+                var builder = new DiscordWebhookBuilder().WithUsername(username).WithAvatarUrl(avatar).WithContent(msg);
+                await webh.ExecuteAsync(builder);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
     }
 }

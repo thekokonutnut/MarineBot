@@ -2,6 +2,8 @@
 using DSharpPlus.Interactivity;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
+using DSharpPlus.Net;
+using DSharpPlus.Lavalink;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -118,6 +120,7 @@ namespace MarineBot
             _cnext.RegisterCommands<Commands.ImageCommands>();
             _cnext.RegisterCommands<Commands.ActionCommands>();
             _cnext.RegisterCommands<Commands.AdminCommands>();
+            _cnext.RegisterCommands<Commands.MusicCommands>();
 
             _reminderthread = new ReminderThread(serviceProvider);
             _pollthread     = new PollThread(serviceProvider);
@@ -237,7 +240,23 @@ namespace MarineBot
         {
             await _dbcontroller.LoadEverything();
 
+            var lavalinkEndpoint = new ConnectionEndpoint
+            {
+                Hostname = "127.0.0.1",
+                Port = 2333 // From your server configuration
+            };
+
+            var lavalinkConfig = new LavalinkConfiguration
+            {
+                Password = "kokito69",
+                RestEndpoint = lavalinkEndpoint,
+                SocketEndpoint = lavalinkEndpoint
+            };
+
+            var lavalink = _client.UseLavalink();
+
             await _client.ConnectAsync();
+            await lavalink.ConnectAsync(lavalinkConfig); 
             await WaitForCancellationAsync();
 
             //await _dbcontroller.SaveEverything();

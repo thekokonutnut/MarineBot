@@ -1,0 +1,17 @@
+{
+    //The Nuget endpoint addresses for getting package versions
+    //* The first address in the list has highest priority
+    //* The {{packageName}} property inject by extension
+    "nugetpackagemanagergui.nuget.packageVersionsUrls": [
+        "https://nuget.emzi0767.com/api/v3/flatcontainer/{{packageName}}/index.json"
+    ],
+
+    //The Nuget endpoint addresses for searching packages
+    //* The first address in the list has highest priority
+    "nugetpackagemanagergui.nuget.searchPackage.urls": [
+        "https://nuget.emzi0767.com/api/v3/search/query"
+    ],
+
+    //true or false determining whether to include pre-release packages in the result of the search
+    "nugetpackagemanagergui.nuget.searchPackage.preRelease": true
+}

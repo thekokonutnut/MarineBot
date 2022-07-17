@@ -65,7 +65,7 @@ namespace MarineBot.Helpers
 
             if (postCount > 100)
             {
-                int maxPage = (int)Math.Ceiling((double)(postCount / 100));
+                int maxPage = (int)Math.Ceiling(postCount / 100.0);
                 if (maxPage > 200) maxPage = 200;
 
                 pageNum = random.Next(0, maxPage);
@@ -142,7 +142,7 @@ namespace MarineBot.Helpers
 
                     result.Add(currtag);
 
-                    if (result.Count == 10) break;
+                    if (result.Count == 20) break;
                 }
             }
             else
@@ -215,7 +215,7 @@ namespace MarineBot.Helpers
 
             if (postCount > 100)
             {
-                int maxPage = (int)Math.Ceiling((double)(postCount / 100));
+                int maxPage = (int)Math.Ceiling(postCount / 100.0);
                 if (maxPage > 200) maxPage = 200;
 
                 pageNum = random.Next(0, maxPage);
@@ -235,14 +235,14 @@ namespace MarineBot.Helpers
             if (status != 200)
                 throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
-            JArray searchResult = JArray.Parse(respstring);
+            JObject searchResult = JObject.Parse(respstring);
 
             var ranCount = random.Next(0, searchResult.Count);
 
             GelbooruImage result = new GelbooruImage()
             {
-                Id = searchResult[ranCount]["id"].ToString(),
-                File_url = searchResult[ranCount]["file_url"].ToString()
+                Id = searchResult["post"][ranCount]["id"].ToString(),
+                File_url = searchResult["post"][ranCount]["file_url"].ToString()
             };
 
             return result;
@@ -266,9 +266,10 @@ namespace MarineBot.Helpers
             if (status != 200)
                 throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
-            JArray searchResult = JArray.Parse(respstring);
+            JObject searchResult = JObject.Parse(respstring);
 
-            var tagCount = searchResult.Count;
+            int tagCount = Convert.ToInt32(searchResult["@attributes"]["count"]);
+            int limit = Convert.ToInt32(searchResult["@attributes"]["limit"]);
 
             if (tagCount <= 0)
                 throw new Exception("No tags were found.");
@@ -277,10 +278,12 @@ namespace MarineBot.Helpers
 
             for (int i = 0; i < tagCount; i++)
             {
+                if (i == limit) break;
+                
                 var currtag = new GelbooruTag()
                 {
-                    Name = searchResult[i]["tag"].ToString(),
-                    Count = searchResult[i]["count"].ToString()
+                    Name = searchResult["tag"][i]["name"].ToString(),
+                    Count = searchResult["tag"][i]["count"].ToString()
                 };
 
                 result.Add(currtag);

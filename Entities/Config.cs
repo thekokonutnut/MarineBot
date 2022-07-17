@@ -40,6 +40,12 @@ namespace MarineBot.Helpers
 
         [JsonProperty("oauth2")]
         internal OAuth2Config oauth2Config = new OAuth2Config();
+        
+        [JsonProperty("enable_lavalink")]
+        internal bool enableLavalink = true;
+
+        [JsonProperty("saucenao_apikey")]
+        internal string saucenaoApiKey = "";
 
         public static Config LoadFromFile(string path)
         {

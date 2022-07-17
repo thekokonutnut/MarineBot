@@ -86,7 +86,7 @@ namespace MarineBot.Helpers
                 throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
 
             JArray searchResult = JArray.Parse(respstring);
-
+            
             var ranCount = random.Next(0, searchResult.Count);
 
             SafebooruImage result = new SafebooruImage()

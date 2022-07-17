@@ -238,26 +238,28 @@ namespace MarineBot
         public async Task RunAsync()
         {
             await _dbcontroller.LoadEverything();
-
-            var lavalinkEndpoint = new ConnectionEndpoint
-            {
-                Hostname = "127.0.0.1",
-                Port = 2333 // From your server configuration
-            };
-
-            var lavalinkConfig = new LavalinkConfiguration
-            {
-                Password = "kokito69",
-                RestEndpoint = lavalinkEndpoint,
-                SocketEndpoint = lavalinkEndpoint
-            };
-
-            var lavalink = _client.UseLavalink();
-
             await _client.ConnectAsync();
-            await lavalink.ConnectAsync(lavalinkConfig); 
-            await WaitForCancellationAsync();
 
+            if (_config.enableLavalink)
+            {
+                var lavalinkEndpoint = new ConnectionEndpoint
+                {
+                    Hostname = "127.0.0.1",
+                    Port = 2333 // From your server configuration
+                };
+
+                var lavalinkConfig = new LavalinkConfiguration
+                {
+                    Password = "kokito69",
+                    RestEndpoint = lavalinkEndpoint,
+                    SocketEndpoint = lavalinkEndpoint
+                };
+
+                var lavalink = _client.UseLavalink();
+                await lavalink.ConnectAsync(lavalinkConfig); 
+            }
+
+            await WaitForCancellationAsync();
             //await _dbcontroller.SaveEverything();
         }
 

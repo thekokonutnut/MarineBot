@@ -327,7 +327,11 @@ namespace MarineBot.Controller
 
             foreach (var act in myActivities)
             {
-                act.AddedBy = usersDB.FirstOrDefault(user => user.ID == act.UserID).DiscordID;
+                var user = usersDB.FirstOrDefault(user => user.ID == act.UserID);
+                if (user is not null)
+                    act.AddedBy = user.DiscordID;
+                else
+                    act.AddedBy = 0;
             }
 
             session.SendJSONObject(new { Error = false, List = myActivities });

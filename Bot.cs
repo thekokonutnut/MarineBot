@@ -37,6 +37,7 @@ namespace MarineBot
         private DatabaseController      _dbcontroller;
         private CommandsInputController _cmdinput;
         private WebappController        _webappControl;
+        private MusicQueueController    _musicController;
 
         private PresenceThread          _presenceThread;
         private ReminderThread          _reminderthread;
@@ -66,7 +67,8 @@ namespace MarineBot
                 AutoReconnect           = true,
                 MinimumLogLevel         = LogLevel.Debug,
                 Token                   = _config.Token,
-                TokenType               = TokenType.Bot
+                TokenType               = TokenType.Bot,
+                Intents                 = DiscordIntents.MessageContents | DiscordIntents.AllUnprivileged,
             });
 
             _interactivity = _client.UseInteractivity(new InteractivityConfiguration()
@@ -75,9 +77,11 @@ namespace MarineBot
                 Timeout             = TimeSpan.FromSeconds(30)
             });
 
-            _cts            = new CancellationTokenSource();
-            _cmdinput       = new CommandsInputController();
-            _dbcontroller   = new DatabaseController(_config.databaseConfig);
+            _cts             = new CancellationTokenSource();
+            _cmdinput        = new CommandsInputController();
+            _dbcontroller    = new DatabaseController(_config.databaseConfig);
+            _musicController = new MusicQueueController();
+            
 
             if (!_dbcontroller.TestConnection())
             {
@@ -91,6 +95,7 @@ namespace MarineBot
                 .AddSingleton(_cts)
                 .AddSingleton(_dbcontroller)
                 .AddSingleton(_cmdinput)
+                .AddSingleton(_musicController)
                 .AddSingleton(_config)
                 .AddSingleton(_client)
                 .AddSingleton(this)
@@ -256,7 +261,7 @@ namespace MarineBot
                 };
 
                 var lavalink = _client.UseLavalink();
-                await lavalink.ConnectAsync(lavalinkConfig); 
+                await lavalink.ConnectAsync(lavalinkConfig);
             }
 
             await WaitForCancellationAsync();

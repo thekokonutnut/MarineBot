@@ -45,23 +45,16 @@ namespace MarineBot.Commands
             if (tag == null) throw new ArgumentException();
             try
             {
-                try
-                {
-                    var ranImg = await _imgur.GetRandomImage(tag);
-                    var embed = new DiscordEmbedBuilder()
-                        .WithColor(0x3d9dd1)
-                        .WithTitle(ranImg.Title)
-                        .WithUrl(ranImg.Link)
-                        .WithAuthor(ranImg.Uploader)
-                        .WithFooter(ranImg.Link)
-                        .WithImageUrl(ranImg.ImageLink);
+                var ranImg = await _imgur.GetRandomImage(tag);
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(0x3d9dd1)
+                    .WithTitle(ranImg.Title)
+                    .WithUrl(ranImg.Link)
+                    .WithAuthor(ranImg.Uploader)
+                    .WithFooter(ranImg.Link)
+                    .WithImageUrl(ranImg.ImageLink);
 
-                    await ctx.RespondAsync(embed: embed);
-                }
-                catch (Exception e)
-                {
-                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
-                }
+                await ctx.RespondAsync(embed: embed);
             }
             catch (Exception e)
             {
@@ -250,6 +243,54 @@ namespace MarineBot.Commands
             }
         }
 
+        [Command("gyazo"), Description("Get a random image of Gyazo. From where? I don't know.")]
+        [Example("images gyazo")]
+        public async Task RandomGyazoCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomGyazo();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("pinterest"), Description("Get a random image of Pinterest. From where? I don't know.")]
+        [Example("images pinterest")]
+        public async Task RandomPinterestCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomPinterest();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("ranimgur"), Description("Get a random image of Imgur. From where? I don't know.")]
+        [Example("images ranimgur")]
+        public async Task RandomImgurCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomImgur();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
+            }
+        }
+
         [Command("sauce"), Description("Find sauce for a image.")]
         [Example("sauce https://catimages.com/cat1.jpg", "sauce (attach image)")]
         public async Task SauceCommand(CommandContext ctx, [Description("Image URL"), RemainingText()] string imgurl = "")
@@ -266,6 +307,10 @@ namespace MarineBot.Commands
                     {
                         imgurl = ctx.Message.ReferencedMessage.Attachments[0].Url;
                     }
+                    else
+                    {
+                        imgurl = ctx.Message.ReferencedMessage.Content;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(imgurl))
@@ -275,27 +320,31 @@ namespace MarineBot.Commands
             {
                 var sourceData = await _sauce.SaucenaoSearch(imgurl);
 
-                var embed = new DiscordEmbedBuilder()
-                    .WithColor(0xff00b3)
-                    .WithTitle("got 'em")
-                    .WithFooter($"Showing result 1 of {sourceData.Count} - Powered by SauceNao")
-                    .WithImageUrl(sourceData[0].Thumbnail);
+                var pagination = new EmbedPagination(ctx, sourceData.Count-1, (off) => {
+                    var embed = new DiscordEmbedBuilder()
+                        .WithColor(0xff00b3)
+                        .WithTitle("got 'em")
+                        .WithFooter($"Showing result {off+1} of {sourceData.Count} - Powered by SauceNao")
+                        .WithImageUrl(sourceData[off].Thumbnail);
 
-                var sb = new StringBuilder();
-                sb.AppendLine($"Got sauce with {sourceData[0].Similarity}% similarity.");
-                if (sourceData[0].ExternalUrls.Count != 0)
-                    sb.AppendLine($"Source: [{sourceData[0].IndexName}]({sourceData[0].ExternalUrls[0]})");
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Got sauce with {sourceData[off].Similarity}% similarity.");
+                    if (sourceData[off].ExternalUrls.Count != 0)
+                        sb.AppendLine($"Source: [{sourceData[off].IndexName}]({sourceData[off].ExternalUrls[0]})");
 
-                embed.WithDescription(sb.ToString());
-                sb.Clear();
+                    embed.WithDescription(sb.ToString());
+                    sb.Clear();
 
-                foreach (var extra in sourceData[0].ExtraInfo)
-                {
-                    sb.AppendLine($"{extra.Key}: {extra.Value}");
-                }
-                embed.AddField("Extra info", sb.ToString());
-                
-                await ctx.RespondAsync(embed: embed);
+                    foreach (var extra in sourceData[off].ExtraInfo)
+                    {
+                        sb.AppendLine($"{extra.Key}: {extra.Value}");
+                    }
+                    embed.AddField("Extra info", sb.ToString());
+
+                    return embed;
+                });
+
+                await pagination.UpdatePaging();
             }
             catch (Exception e)
             {

@@ -139,11 +139,6 @@ namespace MarineBot.Helpers
             dudasAnswers = config.dudaAnswers;
         }
 
-        public static string GetRandomStatus()
-        {
-            return statusList[NumbersHelper.GetRandom(0, statusList.Length - 1)];
-        }
-
         public static string[] GetStatusList() => statusList;
 
         public static string GetDudaAnswer()

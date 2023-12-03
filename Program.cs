@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Text;
 using System.Threading;
 
@@ -9,6 +10,7 @@ namespace MarineBot
         static void Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             bool allowrestart = true;
 

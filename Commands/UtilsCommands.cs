@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using CodingSeb.ExpressionEvaluator;
 using MarineBot.Attributes;
+using Microsoft.Extensions.DependencyInjection;
+using DSharpPlus.Entities;
 
 namespace MarineBot.Commands
 {
@@ -15,6 +17,15 @@ namespace MarineBot.Commands
     [RequireGuild]
     internal class UtilsCommands : BaseCommandModule
     {
+        private Config _config;
+        private YoutubeHelper _youtube;
+
+        public UtilsCommands(IServiceProvider serviceProvider)
+        {
+            _config = serviceProvider.GetService<Config>();
+            _youtube = new YoutubeHelper(_config.ytAPIEndpoint);
+        }
+
         [GroupCommand(), Hidden()]
         public async Task MainCommand(CommandContext ctx)
         {
@@ -93,6 +104,36 @@ namespace MarineBot.Commands
                 var m = MessageHelper.SendSuccessEmbed(ctx, $"Messages deleted successfully.");
                 await Task.Delay(2000);
                 await m.Result.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("youtube"), Description("Downloads mp3 or mp4 from youtube."), Aliases("yt")]
+        [Example("utils youtube https://www.youtube.com/watch?v=IfnoD0tCzD8")]
+        public async Task YoutubeCommand(CommandContext ctx, [Description("Youtube video link")] string video, [Description("Convertion format (available: mp3, mp4)")] string format = "mp3")
+        {
+            try
+            {
+                // TODO: validate url and format
+
+
+                await MessageHelper.SendInfoEmbed(ctx, $"Processing video URL: {video}");
+
+                var procVid = await _youtube.ProcessVideoURL(video, format);
+                
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(0x3d9dd1)
+                    .WithTitle("Your video has been converted!")
+                    .WithFooter("powered by kytd !!!!")
+                    .WithThumbnail(FacesHelper.GetSuccessFace());
+                    //.WithImageUrl(ranImg.ImageLink); // get video thumb
+
+                embed.WithDescription($"**Title:** {procVid.Title}\n**Duration:** {procVid.Duration} seconds\n\n**Format:** {format.ToUpper()}\n**Filesize:** {procVid.Filesize / (1024*1024)} MB\n\n[Download file]({procVid.DownloadLink})\n");
+
+                await ctx.RespondAsync(embed: embed);
             }
             catch (Exception e)
             {

@@ -47,6 +47,12 @@ namespace MarineBot.Helpers
         [JsonProperty("saucenao_apikey")]
         internal string saucenaoApiKey = "";
 
+        [JsonProperty("openai_apikey")]
+        internal string openAIApiKey = "";
+
+        [JsonProperty("ytapi_endpoint")]
+        internal string ytAPIEndpoint = "";
+
         public static Config LoadFromFile(string path)
         {
             using (var sr = new StreamReader(path))

@@ -29,6 +29,7 @@ namespace MarineBot.Controller
             databaseTables.Add(new ReminderTable(ConnectionString));
             databaseTables.Add(new PollTable(ConnectionString));
             databaseTables.Add(new ActivityTable(ConnectionString));
+            databaseTables.Add(new SmugresponsesTable(ConnectionString));
             databaseTables.Add(new UserTable(ConnectionString));
 
             LogTable.Initialize(ConnectionString);

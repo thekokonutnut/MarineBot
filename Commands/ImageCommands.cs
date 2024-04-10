@@ -66,23 +66,21 @@ namespace MarineBot.Commands
         [Example("images safebooru blue_eyes blush", "img safebooru touhou highres")]
         public async Task SafebooruCommand(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
-            if (tag == null) throw new ArgumentException();
+            SafebooruImage ranImg = null;
+
             try
             {
-                try
-                {
-                    var ranImg = await SafebooruHelper.GetRandomImage(tag);
-                    var embed = new DiscordEmbedBuilder()
-                        .WithColor(0x3d9dd1)
-                        .WithFooter($"https://safebooru.org/index.php?page=post&s=view&id={ranImg.Id}")
-                        .WithImageUrl(ranImg.File_url);
+                if (tag == null)
+                    ranImg = await SafebooruHelper.GetRandomImage();
+                else
+                    ranImg = await SafebooruHelper.GetRandomImage(tag);
 
-                    await ctx.RespondAsync(embed: embed);
-                }
-                catch (Exception e)
-                {
-                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
-                }
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(0x3d9dd1)
+                    .WithFooter($"https://safebooru.org/index.php?page=post&s=view&id={ranImg.Id}")
+                    .WithImageUrl(ranImg.File_url);
+
+                await ctx.RespondAsync(embed: embed);
             }
             catch (Exception e)
             {
@@ -97,23 +95,16 @@ namespace MarineBot.Commands
             if (tag == null) throw new ArgumentException();
             try
             {
-                try
+                var ranImg = await SafebooruHelper.SearchForTag(tag);
+
+                var sb = new StringBuilder();
+
+                for (int i = 0; i < ranImg.Count; i++)
                 {
-                    var ranImg = await SafebooruHelper.SearchForTag(tag);
-
-                    var sb = new StringBuilder();
-
-                    for (int i = 0; i < ranImg.Count; i++)
-                    {
-                        sb.Append($"{i + 1}. {Formatter.InlineCode(ranImg[i].Name)} ({ranImg[i].Count})\n");
-                    }
-
-                    await MessageHelper.SendSuccessEmbed(ctx, sb.ToString());
+                    sb.Append($"{i + 1}. {Formatter.InlineCode(ranImg[i].Name)} ({ranImg[i].Count})\n");
                 }
-                catch (Exception e)
-                {
-                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
-                }
+
+                await MessageHelper.SendSuccessEmbed(ctx, sb.ToString());
             }
             catch (Exception e)
             {
@@ -126,23 +117,20 @@ namespace MarineBot.Commands
         [RequireNsfw()]
         public async Task GelbooruCommand(CommandContext ctx, [Description("Tag(s) to search for"), RemainingText()] string tag)
         {
-            if (tag == null) throw new ArgumentException();
+            GelbooruImage ranImg = null;
             try
             {
-                try
-                {
-                    var ranImg = await GelbooruHelper.GetRandomImage(tag);
-                    var embed = new DiscordEmbedBuilder()
-                        .WithColor(0x3d9dd1)
-                        .WithFooter($"https://gelbooru.com/index.php?page=post&s=view&id={ranImg.Id}")
-                        .WithImageUrl(ranImg.File_url);
+                if (tag == null)
+                    ranImg = await GelbooruHelper.GetRandomImage();
+                else
+                    ranImg = await GelbooruHelper.GetRandomImage(tag);
 
-                    await ctx.RespondAsync(embed: embed);
-                }
-                catch (Exception e)
-                {
-                    await MessageHelper.SendWarningEmbed(ctx, e.Message);
-                }
+                var embed = new DiscordEmbedBuilder()
+                    .WithColor(0x3d9dd1)
+                    .WithFooter($"https://gelbooru.com/index.php?page=post&s=view&id={ranImg.Id}")
+                    .WithImageUrl(ranImg.File_url);
+
+                await ctx.RespondAsync(embed: embed);
             }
             catch (Exception e)
             {
@@ -266,6 +254,22 @@ namespace MarineBot.Commands
             try
             {
                 var ranImg = await EmojiHelper.GetRandomPinterest();
+
+                await ctx.RespondAsync(ranImg);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("postimg"), Description("Get a random image of Postimg. From where? I don't know.")]
+        [Example("images postimg")]
+        public async Task RandomPostimgCommand(CommandContext ctx)
+        {
+            try
+            {
+                var ranImg = await EmojiHelper.GetRandomPostimg();
 
                 await ctx.RespondAsync(ranImg);
             }

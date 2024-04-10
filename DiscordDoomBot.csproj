@@ -12,12 +12,13 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Lavalink4NET.DSharpPlus" Version="4.0.13" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenAI" Version="1.7.2" />
-		<PackageReference Include="DSharpPlus" Version="4.4.2" />
-		<PackageReference Include="DSharpPlus.CommandsNext" Version="4.4.2" />
-		<PackageReference Include="DSharpPlus.Interactivity" Version="4.4.2" />
-		<PackageReference Include="DSharpPlus.Lavalink" Version="4.4.2" />
+		<PackageReference Include="DSharpPlus" Version="5.0.0" />
+		<PackageReference Include="DSharpPlus.CommandsNext" Version="5.0.0" />
+		<PackageReference Include="DSharpPlus.Interactivity" Version="5.0.0" />
+		<PackageReference Include="DSharpPlus.Lavalink" Version="5.0.0" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
 		<PackageReference Include="MySqlConnector" Version="2.2.7" />
 		<PackageReference Include="NetCoreServer" Version="7.0.0" />

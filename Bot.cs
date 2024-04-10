@@ -3,7 +3,6 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Net;
-using DSharpPlus.Lavalink;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,6 +23,8 @@ using DSharpPlus.Interactivity.Extensions;
 using MarineBot.Converters;
 using MarineBot.Attributes;
 using MarineBot.Database;
+using Lavalink4NET.Extensions;
+using Lavalink4NET;
 
 namespace MarineBot
 {
@@ -38,6 +39,7 @@ namespace MarineBot
         private CommandsInputController _cmdinput;
         private WebappController        _webappControl;
         private MusicQueueController    _musicController;
+        private SmugresponsesController _smugresponsesController;
 
         private PresenceThread          _presenceThread;
         private ReminderThread          _reminderthread;
@@ -81,6 +83,7 @@ namespace MarineBot
             _cmdinput        = new CommandsInputController();
             _dbcontroller    = new DatabaseController(_config.databaseConfig);
             _musicController = new MusicQueueController();
+            _smugresponsesController = new SmugresponsesController(_dbcontroller);
             
 
             if (!_dbcontroller.TestConnection())
@@ -90,16 +93,27 @@ namespace MarineBot
                 Environment.Exit(0);
             }
 
-            var serviceProvider = new ServiceCollection()
+            var serviceColl = new ServiceCollection()
                 .AddSingleton(_interactivity)
                 .AddSingleton(_cts)
                 .AddSingleton(_dbcontroller)
                 .AddSingleton(_cmdinput)
                 .AddSingleton(_musicController)
+                .AddSingleton(_smugresponsesController)
                 .AddSingleton(_config)
-                .AddSingleton(_client)
-                .AddSingleton(this)
-                .BuildServiceProvider();
+                .AddSingleton(_client);
+
+            if (_config.enableLavalink)
+            {
+                serviceColl.AddLavalink();
+                serviceColl.ConfigureLavalink(config => {
+                    config.Passphrase = "kokito69";
+                });
+            }
+
+            serviceColl.AddSingleton(this);
+
+            var serviceProvider = serviceColl.BuildServiceProvider();
 
             _cnext = _client.UseCommandsNext(new CommandsNextConfiguration()
             {
@@ -134,6 +148,19 @@ namespace MarineBot
             _client.Ready           += OnReadyAsync;
             _client.GuildAvailable  += OnGuildAvailable;
             _client.ClientErrored   += OnClientErrored;
+            _client.MessageCreated  += OnClientMessage;
+        }
+
+        private async Task OnClientMessage(DiscordClient sender, MessageCreateEventArgs args)
+        {
+            if (args.Author.IsBot) return;
+
+            if (_smugresponsesController.IsEnabledGuildResponses(args.Guild.Id) || _smugresponsesController.IsEnabledChannelResponses(args.Channel.Id))
+            {
+                var result = await _smugresponsesController.HandleChannelResponse(sender, args.Message);
+                if (result != null)
+                    _client.Logger.Log(LogLevel.Information, $"Responded to {args.Author.Username} with query '{result.Query}' answering '{result.Answer}'");
+            }
         }
 
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
@@ -247,7 +274,7 @@ namespace MarineBot
 
             if (_config.enableLavalink)
             {
-                var lavalinkEndpoint = new ConnectionEndpoint
+                /*var lavalinkEndpoint = new ConnectionEndpoint
                 {
                     Hostname = "127.0.0.1",
                     Port = 2333 // From your server configuration
@@ -261,8 +288,13 @@ namespace MarineBot
                 };
 
                 var lavalink = _client.UseLavalink();
-                await lavalink.ConnectAsync(lavalinkConfig);
+                await lavalink.ConnectAsync(lavalinkConfig);*/
+                var _audioService = _cnext.Services.GetService<IAudioService>();
+                
+                await _audioService.StartAsync(); 
             }
+
+
 
             await WaitForCancellationAsync();
             //await _dbcontroller.SaveEverything();

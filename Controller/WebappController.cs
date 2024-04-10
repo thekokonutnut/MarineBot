@@ -69,6 +69,7 @@ namespace MarineBot.Controller
         private DatabaseController _dbControl;
 
         private ActivityTable _activityTable;
+        private SmugresponsesTable _responsesTable;
         private UserTable _userTable;
 
         private List<AuthUser> AuthUsers;
@@ -83,6 +84,7 @@ namespace MarineBot.Controller
             _dbControl = serviceProvider.GetService<DatabaseController>();
 
             _activityTable = _dbControl.GetTable<ActivityTable>();
+            _responsesTable = _dbControl.GetTable<SmugresponsesTable>();
             _userTable = _dbControl.GetTable<UserTable>();
 
             AuthUsers = new List<AuthUser>();
@@ -94,6 +96,11 @@ namespace MarineBot.Controller
             SiteHandler.RegisterSite(EditActivitySite,      "/activity/edit");
             SiteHandler.RegisterSite(AuthCheckSite,         "/auth/check");
             SiteHandler.RegisterSite(AuthSite,              "/auth");
+            SiteHandler.RegisterSite(FindResponseSite,      "/response/id");
+            SiteHandler.RegisterSite(ListResponsesSite,     "/response/list");
+            SiteHandler.RegisterSite(AddResponseSite,       "/response/add");
+            SiteHandler.RegisterSite(DeleteResponseSite,    "/response/delete");
+            SiteHandler.RegisterSite(EditResponseSite,      "/response/edit");
         }
 
         protected override TcpSession CreateSession() 
@@ -554,5 +561,287 @@ namespace MarineBot.Controller
 
             session.SendJSONObject(new { Error = false, ID = id });
         }
+
+        private async Task FindResponseSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            string requestId = rtx.Parameters.Get("id");
+            if (requestId == null)
+            {
+                session.SendJSONError("Missing parameter id.", 400);
+                return;
+            }
+
+            int id = -1;
+            if (!int.TryParse(requestId, out id))
+            {
+                session.SendJSONError("Invalid ID.", 400);
+                return;
+            }
+
+            var responses = await _responsesTable.GetResponsesDB();
+            var found = responses.FirstOrDefault(g => g.ID == id);
+
+            if (found == null)
+            {
+                session.SendJSONError("Response not found.", 404);
+                return;
+            }
+
+            session.SendJSONObject(new { Error = false, Response = found });
+        }
+
+        private async Task ListResponsesSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            var responses = await _responsesTable.GetResponsesDB();
+            IEnumerable<SmugresponseEntity> myResponses;
+            myResponses = responses.Where(g => g.UserID == currentUser.ID);
+            session.SendJSONObject(new { Error = false, List = myResponses });
+        }
+
+        private async Task AddResponseSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            string contentType = rtx.Headers.Get("Content-Type");
+
+            if (contentType != "application/x-www-form-urlencoded")
+            {
+                session.SendJSONError("Invalid content type.", 400);
+                return;
+            }
+
+            var bodyParams = HttpUtility.ParseQueryString(rtx.Request.Body);
+
+            string queryText = bodyParams.Get("query");
+            string answer = bodyParams.Get("answer");
+            string typeString  = bodyParams.Get("type");
+
+            if (queryText == null || answer == null || typeString == null)
+            {
+                session.SendJSONError("Missing parameters: query, answer, type", 400);
+                return;
+            }
+
+            if (!int.TryParse(typeString, out int type))
+            {
+                session.SendJSONError("Invalid response type.", 400);
+                return;
+            }
+
+            var responses = _responsesTable.GetEntries();
+            var duplicated = responses.Any(g => g.Query == queryText && g.Answer == answer);
+
+            if (duplicated)
+            {
+                session.SendJSONError("Response already exists.", 403);
+                return;
+            }
+
+            var responseEntry = new SmugresponseEntity()
+            {
+                UserID = currentUser.ID,
+                Type = type,
+                Query = queryText,
+                Answer = answer
+            };
+
+            int id = await _responsesTable.AddResponse(responseEntry);
+            await _responsesTable.LoadTable();
+
+            session.SendJSONObject(new { Error = false, ID = id });
+        }
+
+        private async Task EditResponseSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            string requestId = rtx.Parameters.Get("id");
+            if (requestId == null)
+            {
+                session.SendJSONError("Missing parameter id.", 400);
+                return;
+            }
+
+            int id = -1;
+            if (!int.TryParse(requestId, out id))
+            {
+                session.SendJSONError("Invalid ID.", 400);
+                return;
+            }
+
+            var bodyParams = HttpUtility.ParseQueryString(rtx.Request.Body);
+
+            var responses = await _responsesTable.GetResponsesDB();
+            var found = responses.FirstOrDefault(g => g.ID == id);
+
+            if (found == null)
+            {
+                session.SendJSONError("Response not found.", 404);
+                return;
+            }
+
+            if (!AuthHelper.BotAdministrator(currentUser.DiscordID.ToString()))
+                if (found.UserID != currentUser.ID)
+                {
+                    session.SendJSONError("Forbidden.", 403);
+                    return;
+                }
+
+            string contentType = rtx.Headers.Get("Content-Type");
+
+            if (contentType != "application/x-www-form-urlencoded")
+            {
+                session.SendJSONError("Invalid content type.", 400);
+                return;
+            }
+
+            string _query = bodyParams.Get("query");
+            string _type = bodyParams.Get("type");
+            string _answer = bodyParams.Get("answer");
+
+            if (_query == null || _type == null || _answer == null)
+            {
+                session.SendJSONError("Missing parameters: query, type, answer", 400);
+                return;
+            }
+
+            int responseType = -1;
+            if (!int.TryParse(_type, out responseType))
+            {
+                session.SendJSONError("Invalid response type.", 400);
+                return;
+            }
+
+            var entry = new SmugresponseEntity()
+            {
+                ID = id,
+                UserID = currentUser.ID,
+                Type = responseType,
+                Query = _query,
+                Answer = _answer
+            };
+
+            await _responsesTable.UpdateResponse(id, entry);
+            await _responsesTable.LoadTable();
+
+            session.SendJSONObject(new { Error = false, ID = id });
+        }
+
+        private async Task DeleteResponseSite(HttpSession session, RequestContext rtx)
+        {
+            string authHeader = rtx.Headers.Get("Authentication");
+
+            if (authHeader == null)
+            {
+                session.SendJSONError("Missing authentication header.", 401);
+                return;
+            }
+
+            var currentUser = AuthUsers.FirstOrDefault(user => user.Token.SessionCode == authHeader);
+
+            if (currentUser is null)
+            {
+                session.SendJSONError("Forbidden.", 403);
+                return;
+            }
+
+            string requestId = rtx.Parameters.Get("id");
+            if (requestId == null)
+            {
+                session.SendJSONError("Missing parameter id.", 400);
+                return;
+            }
+
+            int id = -1;
+            if (!int.TryParse(requestId, out id))
+            {
+                session.SendJSONError("Invalid ID.", 400);
+                return;
+            }
+
+            var responses = await _responsesTable.GetResponsesDB();
+            var found = responses.FirstOrDefault(g => g.ID == id);
+
+            if (found == null)
+            {
+                session.SendJSONError("Response not found.", 404);
+                return;
+            }
+
+            if (!AuthHelper.BotAdministrator(currentUser.DiscordID.ToString()))
+            {
+                if (found.UserID != currentUser.ID)
+                {
+                    session.SendJSONError("Forbidden.", 403);
+                    return;
+                }
+            }
+
+            await _responsesTable.RemoveResponse(id, currentUser.ID);
+            await _responsesTable.LoadTable();
+
+            session.SendJSONObject(new { Error = false, ID = id });
+        }
+
     }
 }

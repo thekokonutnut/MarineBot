@@ -33,7 +33,7 @@ namespace MarineBot.Helpers
         {
             var request = new HttpRequestMessage()
             {
-                RequestUri = new Uri($"https://saucenao.com/search.php?db=999&api_key={API_KEY}&output_type=2&testmode=1&numres=6&url={image_url}"),
+                RequestUri = new Uri($"https://saucenao.com/search.php?db=999&api_key={API_KEY}&output_type=2&testmode=1&numres=6&url={Uri.EscapeDataString(image_url)}"),
                 Method = HttpMethod.Get,
             };
 

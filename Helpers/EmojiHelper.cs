@@ -136,5 +136,30 @@ namespace MarineBot.Helpers
 
             return (string)searchResult[ranCount][0];
         }
+
+        public static async Task<string> GetRandomPostimg()
+        {
+            var page = NumbersHelper.GetRandom(2, 227); 
+
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri($"http://web.archive.org/cdx/search/cdx?url=i.postimg.cc&matchType=prefix&limit=1000&output=json&fl=original&page={page}"),
+                Method = HttpMethod.Get,
+            };
+
+            var response = await client.SendAsync(request);
+            var respstring = await response.Content.ReadAsStringAsync();
+
+            int status = (int)response.StatusCode;
+
+            if (status != 200)
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+
+            JArray searchResult = JArray.Parse(respstring);
+
+            var ranCount = NumbersHelper.GetRandom(1, searchResult.Count - 1);
+
+            return (string)searchResult[ranCount][0];
+        }
     }
 }

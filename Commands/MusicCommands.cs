@@ -6,7 +6,12 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using DSharpPlus.Lavalink;
+using Lavalink4NET;
+using Lavalink4NET.DSharpPlus;
+using Lavalink4NET.Extensions;
+using Lavalink4NET.Players;
+using Lavalink4NET.Players.Queued;
+using Lavalink4NET.Rest.Entities.Tracks;
 using MarineBot.Attributes;
 using MarineBot.Controller;
 using MarineBot.Helpers;
@@ -20,11 +25,11 @@ namespace MarineBot.Commands
     [RequireGuild]
     internal class MusicCommands : BaseCommandModule
     {
-        private MusicQueueController _queuecontrol;
+        private IAudioService _audioService;
 
         public MusicCommands(IServiceProvider serviceProvider)
         {
-            _queuecontrol = serviceProvider.GetService<MusicQueueController>();
+            _audioService = serviceProvider.GetService<IAudioService>();
         }
         
         [GroupCommand(), Hidden()]
@@ -46,33 +51,30 @@ namespace MarineBot.Commands
             
             var channel = ctx.Member.VoiceState.Channel;
 
-            var lava = ctx.Client.GetLavalink();
-            if (!lava.ConnectedNodes.Any())
-            {
-                await MessageHelper.SendErrorEmbed(ctx, "The Lavalink connection is not established");
-                return;
-            }
-
-            var node = lava.ConnectedNodes.Values.First();
-
             if (channel.Type != ChannelType.Voice)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Not a valid voice channel.");
                 return;
             }
 
-            var conn = node.GetGuildConnection(channel.Guild);
+            var hasplayer = _audioService.Players.HasPlayer(ctx.Guild.Id);
 
-            if (conn != null)
+            if (hasplayer)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Bot is already in a voice channel, use music leave first!");
                 return;
             }
 
-            conn = await node.ConnectAsync(channel);
-            await MessageHelper.SendSuccessEmbed(ctx, $"Joined {channel.Name}!");
+            var player = await _audioService.Players.JoinAsync(ctx.Guild.Id, channel.Id, PlayerFactory.Queued);
 
-            _queuecontrol.StartQueueSession(channel.Id, conn);
+            if (player != null)
+            {
+                await MessageHelper.SendSuccessEmbed(ctx, $"Joined {channel.Name}!");
+            }
+            else
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "Could not create the audio player!");
+            }
         }
 
         [Command("leave"), Description("Removes the bot from a voice channel.")]
@@ -86,14 +88,12 @@ namespace MarineBot.Commands
             
             var channel = ctx.Member.VoiceState.Channel;
 
-            var lava = ctx.Client.GetLavalink();
+            /*var lava = ctx.Client.GetLavalink();
             if (!lava.ConnectedNodes.Any())
             {
                 await MessageHelper.SendErrorEmbed(ctx, "The Lavalink connection is not established");
                 return;
-            }
-
-            var node = lava.ConnectedNodes.Values.First();
+            }*/
 
             if (channel.Type != ChannelType.Voice)
             {
@@ -101,17 +101,15 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var conn = node.GetGuildConnection(channel.Guild);
+            var player = await _audioService.Players.GetPlayerAsync(ctx.Guild.Id);
 
-            if (conn == null)
+            if (player == null)
             {
-                await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
+                await MessageHelper.SendErrorEmbed(ctx, "Bot is not in a voice channel.");
                 return;
             }
 
-            _queuecontrol.DestroyQueueSession(conn.Channel.Id);
-
-            await conn.DisconnectAsync();
+            await player.DisconnectAsync();
             await MessageHelper.SendSuccessEmbed(ctx, $"Left {channel.Name}!");
         }
 
@@ -124,11 +122,13 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var lava = ctx.Client.GetLavalink();
-            var node = lava.ConnectedNodes.Values.First();
-            var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+            //var lava = ctx.Client.GetLavalink();
+            //var node = lava.ConnectedNodes.Values.First();
+            //var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
 
-            if (conn == null)
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
+
+            if (player == null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
                 return;
@@ -136,26 +136,24 @@ namespace MarineBot.Commands
 
             await ctx.TriggerTypingAsync();
 
-            var loadResult = await node.Rest.GetTracksAsync(search);
+            var track = await _audioService.Tracks
+                .LoadTrackAsync(search, TrackSearchMode.YouTube);
 
-            if (loadResult.LoadResultType == LavalinkLoadResultType.LoadFailed 
-                || loadResult.LoadResultType == LavalinkLoadResultType.NoMatches)
+            if (track is null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, $"Track search failed for {search}.");
                 return;
             }
 
-            var track = loadResult.Tracks.First();
+            var position = await player.PlayAsync(track);
 
-            if (conn.CurrentState.CurrentTrack == null)
+            if (position is 0)
             {
-                await conn.PlayAsync(track);
                 await MessageHelper.SendSuccessEmbed(ctx, $"Now playing: {track.Title}!");
             }
             else
             {
-                int pos = _queuecontrol.AddToQueueSession(conn.Channel.Id, new QueueTrack(track, ctx.Member, ctx.Channel));
-                await MessageHelper.SendSuccessEmbed(ctx, $"Added track to queue: {track.Title}!\nPosition: {pos+1}");
+                await MessageHelper.SendSuccessEmbed(ctx, $"Added track to queue: {track.Title}!\nPosition: {position}");
             }
         }
 
@@ -168,25 +166,100 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var lava = ctx.Client.GetLavalink();
-            var node = lava.ConnectedNodes.Values.First();
-            var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+            //var lava = ctx.Client.GetLavalink();
+            //var node = lava.ConnectedNodes.Values.First();
+            //var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
 
-            if (conn == null)
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
+
+            if (player == null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
                 return;
             }
 
-            if (conn.CurrentState.CurrentTrack == null)
+            if (player.CurrentItem is null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
                 return;
             }
 
-            _queuecontrol.ClearQueueSession(conn.Channel.Id);
-            await conn.StopAsync();
+            await player.StopAsync();
             await MessageHelper.SendInfoEmbed(ctx, "Stopped playing music.");
+        }
+
+        [Command("pause"), Description("Pause the music in a voice channel.")]
+        public async Task PauseCommand(CommandContext ctx)
+        {
+            if (ctx.Member.VoiceState == null || ctx.Member.VoiceState.Channel == null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "You are not in a voice channel.");
+                return;
+            }
+
+            //var lava = ctx.Client.GetLavalink();
+            //var node = lava.ConnectedNodes.Values.First();
+            //var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
+
+            if (player == null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
+                return;
+            }
+
+            if (player.CurrentItem is null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
+                return;
+            }
+
+            if (player.IsPaused)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, "Audio is already paused.");
+                return;
+            }
+
+            await player.PauseAsync();
+            await MessageHelper.SendInfoEmbed(ctx, "Paused music.");
+        }
+
+        [Command("resume"), Description("Resume the music in a voice channel.")]
+        public async Task ResumeCommand(CommandContext ctx)
+        {
+            if (ctx.Member.VoiceState == null || ctx.Member.VoiceState.Channel == null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "You are not in a voice channel.");
+                return;
+            }
+
+            //var lava = ctx.Client.GetLavalink();
+            //var node = lava.ConnectedNodes.Values.First();
+            //var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
+
+            if (player == null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
+                return;
+            }
+
+            if (player.CurrentItem is null)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
+                return;
+            }
+
+            if (!player.IsPaused)
+            {
+                await MessageHelper.SendWarningEmbed(ctx, "Audio is not paused.");
+                return;
+            }
+
+            await player.ResumeAsync();
+            await MessageHelper.SendInfoEmbed(ctx, "Resumed playing music.");
         }
 
         [Command("skip"), Description("Skip current song in queue.")]
@@ -198,23 +271,32 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var lava = ctx.Client.GetLavalink();
-            var node = lava.ConnectedNodes.Values.First();
-            var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
 
-            if (conn == null)
+            if (player == null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
                 return;
             }
 
-            if (conn.CurrentState.CurrentTrack == null)
+            if (player.CurrentItem is null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
                 return;
             }
 
-            await conn.StopAsync();
+            await player.SkipAsync();
+
+            var track = player.CurrentItem;
+
+            if (track is not null)
+            {
+                await MessageHelper.SendInfoEmbed(ctx, $"Skipped. Now playing: {track.Track!.Uri}");
+            }
+            else
+            {
+                await MessageHelper.SendInfoEmbed(ctx, "Skipped. Stopped playing because the queue is now empty.");
+            }
         }
 
         [Command("trackinfo"), Description("Display current track information.")]
@@ -226,25 +308,23 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var lava = ctx.Client.GetLavalink();
-            var node = lava.ConnectedNodes.Values.First();
-            var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
 
-            if (conn == null)
+            if (player == null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
                 return;
             }
 
-            if (conn.CurrentState.CurrentTrack == null)
+            if (player.CurrentItem is null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
                 return;
             }
 
-            var track = conn.CurrentState.CurrentTrack;
+            var track = player.CurrentItem;
 
-            await MessageHelper.SendInfoEmbed(ctx, $"**Track title:** {track.Title}\n**Author:** {track.Author}\n**Duration:** {track.Length.ToString("h'h 'm'm 's's'")}");
+            await MessageHelper.SendInfoEmbed(ctx, $"**Track title:** {track.Track!.Title}\n**Author:** {track.Track!.Author}\n**Duration:** {track.Track!.Duration.ToString("h'h 'm'm 's's'")}");
         }
 
         [Command("queue"), Description("Shows the queue.")]
@@ -256,27 +336,24 @@ namespace MarineBot.Commands
                 return;
             }
 
-            var lava = ctx.Client.GetLavalink();
-            var node = lava.ConnectedNodes.Values.First();
-            var conn = node.GetGuildConnection(ctx.Member.VoiceState.Guild);
+            var player = await _audioService.Players.GetPlayerAsync<QueuedLavalinkPlayer>(ctx.Guild.Id);
 
-            if (conn == null)
+            if (player == null)
             {
                 await MessageHelper.SendErrorEmbed(ctx, "Lavalink is not connected.");
                 return;
             }
 
-            var sess = _queuecontrol.GetQueueSessionList(conn.Channel.Id);
-            if (sess == null || sess.Count == 0)
+            if (player.CurrentItem is null)
             {
-                await MessageHelper.SendErrorEmbed(ctx, "There is no queue on this session.");
+                await MessageHelper.SendErrorEmbed(ctx, "There are no tracks loaded.");
                 return;
             }
 
             var sb = new StringBuilder();
-            for (int i = 0; i < sess.Count; i++)
+            for (int i = 0; i < player.Queue.Count; i++)
             {
-                sb.AppendLine($"**{i+1}**: {sess[i].track.Title} **[{sess[i].addedBy.Username}]**");
+                sb.AppendLine($"**{i+1}**: {player.Queue[i].Track!.Title}");
             }
 
             var embed = new DiscordEmbedBuilder()

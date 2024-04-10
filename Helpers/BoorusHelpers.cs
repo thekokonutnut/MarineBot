@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using HtmlAgilityPack;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml;
 
 namespace MarineBot.Helpers
@@ -93,6 +95,42 @@ namespace MarineBot.Helpers
             {
                 Id = searchResult[ranCount]["id"].ToString(),
                 File_url = $"https://safebooru.org/images/{searchResult[ranCount]["directory"]}/{searchResult[ranCount]["image"]}"
+            };
+
+            return result;
+        }
+
+        public static async Task<SafebooruImage> GetRandomImage()
+        {
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri($"https://safebooru.org/index.php?page=post&s=random"),
+                Method = HttpMethod.Get,
+            };
+
+            var response = await client.SendAsync(request);
+            var respstring = await response.Content.ReadAsStringAsync();
+
+            int status = (int)response.StatusCode;
+
+            if (status != 200)
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+
+            string query = response.RequestMessage.RequestUri.Query;
+            var queryParameters = HttpUtility.ParseQueryString(query);
+
+            string idValue = queryParameters["id"];
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(respstring);
+
+            HtmlNode metaTag = doc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
+            string imageUrl = metaTag.GetAttributeValue("content", "");
+
+            SafebooruImage result = new SafebooruImage()
+            {
+                Id = idValue,
+                File_url = imageUrl
             };
 
             return result;
@@ -243,6 +281,42 @@ namespace MarineBot.Helpers
             {
                 Id = searchResult["post"][ranCount]["id"].ToString(),
                 File_url = searchResult["post"][ranCount]["file_url"].ToString()
+            };
+
+            return result;
+        }
+
+        public static async Task<GelbooruImage> GetRandomImage()
+        {
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri($"https://gelbooru.com/index.php?page=post&s=random"),
+                Method = HttpMethod.Get,
+            };
+
+            var response = await client.SendAsync(request);
+            var respstring = await response.Content.ReadAsStringAsync();
+
+            int status = (int)response.StatusCode;
+
+            if (status != 200)
+                throw new Exception($"API returned the response code: {status} {Enum.GetName(typeof(HttpStatusCode), status)}");
+
+            string query = response.RequestMessage.RequestUri.Query;
+            var queryParameters = HttpUtility.ParseQueryString(query);
+
+            string idValue = queryParameters["id"];
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(respstring);
+
+            HtmlNode metaTag = doc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
+            string imageUrl = metaTag.GetAttributeValue("content", "");
+
+            GelbooruImage result = new GelbooruImage()
+            {
+                Id = idValue,
+                File_url = imageUrl
             };
 
             return result;

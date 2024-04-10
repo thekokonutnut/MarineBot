@@ -8,6 +8,7 @@ using CodingSeb.ExpressionEvaluator;
 using MarineBot.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using DSharpPlus.Entities;
+using MarineBot.Controller;
 
 namespace MarineBot.Commands
 {
@@ -19,11 +20,13 @@ namespace MarineBot.Commands
     {
         private Config _config;
         private YoutubeHelper _youtube;
+        private SmugresponsesController _smugresponseController;
 
         public UtilsCommands(IServiceProvider serviceProvider)
         {
             _config = serviceProvider.GetService<Config>();
             _youtube = new YoutubeHelper(_config.ytAPIEndpoint);
+            _smugresponseController = serviceProvider.GetService<SmugresponsesController>();
         }
 
         [GroupCommand(), Hidden()]
@@ -134,6 +137,44 @@ namespace MarineBot.Commands
                 embed.WithDescription($"**Title:** {procVid.Title}\n**Duration:** {procVid.Duration} seconds\n\n**Format:** {format.ToUpper()}\n**Filesize:** {procVid.Filesize / (1024*1024)} MB\n\n[Download file]({procVid.DownloadLink})\n");
 
                 await ctx.RespondAsync(embed: embed);
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("smugresponsechan"), Description("Toggles the smugresponses for this channel.")]  
+        [RequireUserPermissions(Permissions.ManageMessages)]     
+        public async Task SmugresponsesChanCommand(CommandContext ctx)
+        {
+            try
+            {
+                _smugresponseController.ToggleEnabledChannelResponses(ctx.Channel.Id);
+
+                if (_smugresponseController.IsEnabledChannelResponses(ctx.Channel.Id))
+                    await MessageHelper.SendSuccessEmbed(ctx, "Smug responses enabled for this channel!");
+                else
+                    await MessageHelper.SendSuccessEmbed(ctx, "Smug responses disabled for this channel!");
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("smugresponseguild"), Description("Toggles the smugresponses for the entire guild.")]   
+        [RequireUserPermissions(Permissions.ManageMessages)]    
+        public async Task SmugresponsesGuildCommand(CommandContext ctx)
+        {
+            try
+            {
+                _smugresponseController.ToggleEnabledGuildResponses(ctx.Guild.Id);
+
+                if (_smugresponseController.IsEnabledGuildResponses(ctx.Guild.Id))
+                    await MessageHelper.SendSuccessEmbed(ctx, "Smug responses enabled for this guild!");
+                else
+                    await MessageHelper.SendSuccessEmbed(ctx, "Smug responses disabled for this guild!");
             }
             catch (Exception e)
             {

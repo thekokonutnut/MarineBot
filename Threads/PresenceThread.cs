@@ -113,7 +113,7 @@ namespace MarineBot.Threads
                 }
             }
 
-            activity = new DiscordActivity($"{final_status} | {_config.Prefix}help", new_status.Type);
+            activity = new DiscordActivity($"{final_status}", new_status.Type);
             await _client.UpdateStatusAsync(activity);
         }
     }

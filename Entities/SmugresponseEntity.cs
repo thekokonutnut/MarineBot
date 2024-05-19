@@ -16,8 +16,6 @@ namespace MarineBot.Entities
         public string Answer;
         public string ModAnswer;
 
-        public ulong AddedBy;
-
         public SmugresponseEntity()
         {
         }

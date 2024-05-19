@@ -9,10 +9,13 @@ using MarineBot.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using DSharpPlus.Entities;
 using MarineBot.Controller;
+using System.Linq;
+using System.Text;
+using MarineBot.Entities;
 
 namespace MarineBot.Commands
 {
-    [Group("Utils"),Aliases("u")]
+    [Group("Utils"), Aliases("u")]
     [Description("Commands of varied utility.")]
     [ShortCommandsGroup]
     [RequireGuild]
@@ -59,7 +62,8 @@ namespace MarineBot.Commands
             if (options == null) throw new ArgumentException();
             try
             {
-                if (options.Length < 2) {
+                if (options.Length < 2)
+                {
                     await MessageHelper.SendWarningEmbed(ctx, "I need at least two options.");
                     return;
                 }
@@ -96,7 +100,7 @@ namespace MarineBot.Commands
 
         [Command("purge"), Description("Deletes the specified number of messages.")]
         [Example("utils purge 10")]
-        [RequireUserPermissions(Permissions.ManageMessages), RequireBotPermissions(Permissions.ManageMessages)]    
+        [RequireUserPermissions(Permissions.ManageMessages), RequireBotPermissions(Permissions.ManageMessages)]
         public async Task PurgeCommand(CommandContext ctx, [Description("Number of messages")] uint amount)
         {
             try
@@ -126,15 +130,15 @@ namespace MarineBot.Commands
                 await MessageHelper.SendInfoEmbed(ctx, $"Processing video URL: {video}");
 
                 var procVid = await _youtube.ProcessVideoURL(video, format);
-                
+
                 var embed = new DiscordEmbedBuilder()
                     .WithColor(0x3d9dd1)
                     .WithTitle("Your video has been converted!")
                     .WithFooter("powered by kytd !!!!")
                     .WithThumbnail(FacesHelper.GetSuccessFace());
-                    //.WithImageUrl(ranImg.ImageLink); // get video thumb
+                //.WithImageUrl(ranImg.ImageLink); // get video thumb
 
-                embed.WithDescription($"**Title:** {procVid.Title}\n**Duration:** {procVid.Duration} seconds\n\n**Format:** {format.ToUpper()}\n**Filesize:** {procVid.Filesize / (1024*1024)} MB\n\n[Download file]({procVid.DownloadLink})\n");
+                embed.WithDescription($"**Title:** {procVid.Title}\n**Duration:** {procVid.Duration} seconds\n\n**Format:** {format.ToUpper()}\n**Filesize:** {procVid.Filesize / (1024 * 1024)} MB\n\n[Download file]({procVid.DownloadLink})\n");
 
                 await ctx.RespondAsync(embed: embed);
             }
@@ -144,8 +148,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("smugresponsechan"), Description("Toggles the smugresponses for this channel.")]  
-        [RequireUserPermissions(Permissions.ManageMessages)]     
+        [Command("smugresponsechan"), Description("Toggles the smugresponses for this channel.")]
+        [RequireUserPermissions(Permissions.ManageMessages)]
         public async Task SmugresponsesChanCommand(CommandContext ctx)
         {
             try
@@ -163,8 +167,8 @@ namespace MarineBot.Commands
             }
         }
 
-        [Command("smugresponseguild"), Description("Toggles the smugresponses for the entire guild.")]   
-        [RequireUserPermissions(Permissions.ManageMessages)]    
+        [Command("smugresponseguild"), Description("Toggles the smugresponses for the entire guild.")]
+        [RequireUserPermissions(Permissions.ManageMessages)]
         public async Task SmugresponsesGuildCommand(CommandContext ctx)
         {
             try
@@ -175,6 +179,111 @@ namespace MarineBot.Commands
                     await MessageHelper.SendSuccessEmbed(ctx, "Smug responses enabled for this guild!");
                 else
                     await MessageHelper.SendSuccessEmbed(ctx, "Smug responses disabled for this guild!");
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("anime"), Description("Search for anime details."), Aliases("a")]
+        [Example("utils anime One Piece", "utils a 5667")]
+        public async Task AnimeSearchCommand(CommandContext ctx, [Description("Search query or MAL Id"), RemainingText()] string query)
+        {
+            try
+            {
+                MALAnimeEntry anime;
+                if (query == null)
+                {
+                    anime = await MALHelper.GetRandomAnimeEntry();
+                }
+                else if (int.TryParse(query, out int id))
+                {
+                    anime = await MALHelper.GetAnimeEntryById(id);
+                }
+                else
+                {
+                    var animeList = await MALHelper.GetAnimeEntriesAsync(query);
+                    anime = animeList.First();
+                }
+
+                if (anime != null)
+                {
+                    var embed = new DiscordEmbedBuilder()
+                        .WithColor(0x1b62b5);
+                    embed.Title = anime.Title;
+                    embed.Url = anime.Url;
+                    embed.Description = anime.Title_Japanese;
+
+                    if (anime.Year != null)
+                        embed.AddField("Year", anime.Year.ToString(), true);
+                    else
+                        embed.AddField("Year", anime.Aired.From?.Year.ToString() ?? "Unknown", true);
+
+                    embed.AddField("Episodes", anime.Episodes?.ToString() ?? "Unknown", true);
+                    embed.AddField("Status", anime.Status ?? "Unknown", true);
+                    embed.AddField("Type", anime.Type ?? "Unknown", true);
+                    embed.AddField("Rating", anime.Rating ?? "Unknown", true);
+
+                    if (anime.Genres != null && anime.Genres.Count > 0)
+                    {
+                        string genres = string.Join(", ", anime.Genres.Select(g => g.Name));
+                        embed.AddField("Genres", genres, true);
+                    }
+
+                    if (anime.Producers != null && anime.Producers.Count > 0)
+                    {
+                        string producers = string.Join(", ", anime.Producers.Select(p => p.Name));
+                        embed.AddField("Producers", producers, true);
+                    }
+
+                    if (anime.Studios != null && anime.Studios.Count > 0)
+                    {
+                        string studios = string.Join(", ", anime.Studios.Select(s => s.Name));
+                        embed.AddField("Studios", studios, true);
+                    }
+
+                    string synopsis = anime.Synopsis.Length > 280 ? anime.Synopsis.Substring(0, 280) + "..." : anime.Synopsis;
+                    embed.AddField("Synopsis", synopsis, false);
+
+                    embed.WithFooter($"Scored {anime.Score ?? 0} by {anime.Scored_By ?? 0} users /// Powered by Jikan");
+
+                    if (anime.Images != null && !String.IsNullOrWhiteSpace(anime.Images.Jpg.Image_Url))
+                        embed.WithThumbnail(anime.Images.Jpg.Image_Url);
+
+                    await ctx.RespondAsync(embed: embed);
+                }
+            }
+            catch (Exception e)
+            {
+                await MessageHelper.SendErrorEmbed(ctx, e.Message);
+            }
+        }
+
+        [Command("anime:list"), Description("Get a listing of animes matching a query."), Aliases("a")]
+        [Example("utils anime One Piece")]
+        public async Task AnimeListingCommand(CommandContext ctx, [Description("Search query"), RemainingText()] string query)
+        {
+            if (query == null) throw new ArgumentException();
+
+            try
+            {
+                var animeList = await MALHelper.GetAnimeEntriesAsync(query, 5);
+
+                var embed = new DiscordEmbedBuilder()
+                        .WithColor(0x1b62b5)
+                        .WithTitle("Search results");
+
+                var sb = new StringBuilder();
+
+                foreach (var item in animeList)
+                {
+                    sb.AppendLine($"{item.Mal_Id} - {item.Title}");
+                }
+
+                embed.AddField("MAL Id - Anime title", sb.ToString());
+
+                await ctx.RespondAsync(embed: embed);
             }
             catch (Exception e)
             {
